@@ -7,6 +7,8 @@ each (nav.childNodes, function (i, x) {
 	}
 });
 
+var DEBUG = false;
+
 var stats = {};
 var f = [];
 var href2name = {};
@@ -82,7 +84,7 @@ var out = {
 		this.countDiv = ce('div');
 		
 		var table = ce('table', {className: 'wikiTable'});
-		table.innerHTML += '<thead><th></th><th>Имя</th><th onclick="javascript: calculation();" style="cursor: pointer">Всего сообщений</th><th onclick="javascript: calculation(\'out\');" style="cursor: pointer">Вы отправили</th><th onclick="javascript: calculation(\'in\');" style="cursor: pointer">Вы получили</th></thead>';
+		table.innerHTML += '<thead><th></th><th>Имя</th><th onclick="javascript: calculation();" style="cursor: pointer">Всего сообщений</th><th onclick="javascript: calculation(\'out\');" style="cursor: pointer">Вы отправили</th><th onclick="javascript: calculation(\'in\');" style="cursor: pointer">Вы получили</th><th>Последнее сообщение</th></thead>';
 		
 		var tbody = ce('tbody');
 		table.appendChild(tbody);
@@ -94,12 +96,14 @@ var out = {
 			var tdT = ce('td', {innerHTML: f[i].count});
 			var tdO = ce('td', {innerHTML: f[i].count_outgoing});
 			var tdI = ce('td', {innerHTML: f[i].count_incoming});
+			var tdL = ce('td', {innerHTML: '<a href="mail.php?act=show&id='+f[i].lastMsgId+'">' + f[i].lastMsgTime + '</a>'});
 			
 			tr.appendChild(tdR);
 			tr.appendChild(tdN);
 			tr.appendChild(tdT);
 			tr.appendChild(tdO);
 			tr.appendChild(tdI);
+			tr.appendChild(tdL);
 			tbody.appendChild(tr);
 		}
 		
@@ -204,7 +208,9 @@ function calculation(t) {
 				name: href2name[key],
 				count: stats[key].count_out + stats[key].count_in,
 				count_incoming: stats[key].count_in,
-				count_outgoing: stats[key].count_out
+				count_outgoing: stats[key].count_out,
+				lastMsgId: stats[key].lastMsgId,
+				lastMsgTime: stats[key].lastMsgTime
 			});
 		}
 	}
@@ -264,22 +270,32 @@ function la() {
 				var href = x.children[0].href;
 				var name = x.children[0].innerHTML;
 				var ch = x.parentNode.children;
-				var dt = ch[ch.length - 1].innerHTML.split(' в ');
+				var latestDate = ch[ch.length - 1].innerHTML;
+				var dt = latestDate.split(' в ');
 				var dt2 = dt[1].split('<br>');
 				if (dates[dt[0]] == undefined) dates[dt[0]] = {inb: 0, out: 0};
 				if (times[dt2[0]] == undefined) times[dt2[0]] = {inb: 0, out: 0};
 								
 				if (href2name[href] == undefined) {
 					href2name[href] = name;
-					//out.debug('[h2n] ' + href + ' -> ' + name);
+					if(DEBUG) {
+						out.debug('[h2n] ' + href + ' -> ' + name);
+					}
 				}
 				
 				if (stats[href] == undefined) {
+				
+					lastId = x.parentNode.parentNode.id.substring(4);
+				
 					stats[href] = {
 						count_out: 0,
-						count_in: 0
+						count_in: 0,
+						lastMsgId: lastId,
+						lastMsgTime: latestDate
 					};
-					//out.debug('[stats] ' + href + ' started');
+					if(DEBUG) {
+						out.debug('[stats] ' + href + ' started (lastMsgId=' + '; lastMsgTime=' + latestDate + ')');
+					}
 				}
 				
 				if (ao.data.out == 0) {
@@ -291,8 +307,9 @@ function la() {
 					dates[dt[0]].out++;
 					times[dt2[0]].out++;
 				}
-	
-				//out.debug('[stats] ' + href + ' handled');									
+				if(DEBUG) {
+					out.debug('[stats] ' + href + ' handled');
+				}
 			}
 		);
 		
