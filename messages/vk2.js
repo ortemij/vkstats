@@ -13,6 +13,7 @@ var DEBUG = false;
 
 var supportedLanguages = {
 	russian: 0,
+	ukrainian: 1,
 	english: 3
 }
 
@@ -61,6 +62,22 @@ languages[supportedLanguages.english] = {
 	exportByMessages: 'Export message statistics'
 }
 
+languages[supportedLanguages.ukrainian] = {
+	dateDelimiter: 'о',
+	appName: 'Статистика приватні переписки',
+	nameCol: "Ім'я",
+	numberOfMessagesCol: 'Усього повідомлень',
+	sentCol: 'Ви відправили',
+	receivedCol: 'Ви одержали',
+	lastMsgCol: 'Останнє повідомлення',
+	messagesProcessed: 'Оброблене повідомлень',
+	dayWithMostMessages: 'Найбільше повідомлень було',
+	timeWithMostMessages: 'Найбільше повідомлень',
+	thankYou: 'Спасибі, що дочекалися, сподіваємося, воно того коштувало!',
+	exportByTime: 'Експорт статистики за часом',
+	exportByMessages: 'Експорт статистики за повідомленням'
+}
+
 
 var LANG = languages[userLang];
 
@@ -92,7 +109,7 @@ if(LANG == undefined) {
 				if(DEBUG) {
 					out.debug('finished');
 				}
-				calculation();
+				sortRows();
 				finished = true;
 			};
 			la();
@@ -146,7 +163,7 @@ if(LANG == undefined) {
 			this.countDiv = ce('div');
 			
 			var table = ce('table', {className: 'wikiTable'});
-			table.innerHTML += '<thead><th></th><th>' + LANG.nameCol + '</th><th onclick="javascript: calculation();" style="cursor: pointer">' + LANG.numberOfMessagesCol + '</th><th onclick="javascript: calculation(\'out\');" style="cursor: pointer">' + LANG.sentCol + '</th><th onclick="javascript: calculation(\'in\');" style="cursor: pointer">' + LANG.receivedCol + '</th><th>' + LANG.lastMsgCol + '</th></thead>';
+			table.innerHTML += '<thead><th></th><th>' + LANG.nameCol + '</th><th onclick="javascript: sortRows();" style="cursor: pointer">' + LANG.numberOfMessagesCol + '</th><th onclick="javascript: sortRows(\'out\');" style="cursor: pointer">' + LANG.sentCol + '</th><th onclick="javascript: sortRows(\'in\');" style="cursor: pointer">' + LANG.receivedCol + '</th><th>' + LANG.lastMsgCol + '</th></thead>';
 			
 			var tbody = ce('tbody');
 			table.appendChild(tbody);
@@ -262,7 +279,7 @@ if(LANG == undefined) {
 		}
 	};
 
-	function calculation(t) {
+	function sortRows(t) {
 		if (f.length == 0) {
 			for (var key in stats) {
 				f.push({
@@ -319,6 +336,19 @@ if(LANG == undefined) {
 			})
 		}
 	});
+	
+	function parseTS(localString) {
+		var splitDate = localString.split(LANG.dateDelimiter);
+		var resultingTime = splitDate[1];
+		var resultingDate = splitDate[0];
+		if(userLang == supportedLanguages.english && splitDate[1] != undefined) {
+			splitDate = localString.split(LANG.secondaryDateDelimiter);
+			resultingTime = splitDate[0];
+			resultingDate = splitDate[1];
+		}
+		
+		return resultingDate + ' ' + resultingTime;
+	}
 
 	function la() {
 		var ajax = new Ajax();
@@ -337,21 +367,14 @@ if(LANG == undefined) {
 					var name = x.children[0].innerHTML;
 					var ch = x.parentNode.children;
 					var latestDate = ch[ch.length - 1].innerHTML;
-					var dt = latestDate.split(LANG.dateDelimiter);
-					var dt2;
-					if(userLang != supportedLanguages.english) {
-						dt2 = dt[1].split('<br>');
-					} else {
-						if(dt[1] != undefined) {
-							dt2 = dt[1].split('<br>');
-						} else {
-							dt = latestDate.split(LANG.secondaryDateDelimiter);
-							dt2 = dt[0].split('<br>');
-							dt[0] = dt[1];
-						}
-					}
-					if (dates[dt[0]] == undefined) dates[dt[0]] = {inb: 0, out: 0};
-					if (times[dt2[0]] == undefined) times[dt2[0]] = {inb: 0, out: 0};
+					
+					var parsedTS = parseTS(latestDate).split(' ');
+					
+					msgDate = parsedTS[0];
+					msgTime = parsedTS[1];
+					
+					if (dates[msgDate] == undefined) dates[msgDate] = {inb: 0, out: 0};
+					if (times[msgTime] == undefined) times[msgTime] = {inb: 0, out: 0};
 									
 					if (href2name[href] == undefined) {
 						href2name[href] = name;
@@ -377,12 +400,12 @@ if(LANG == undefined) {
 					
 					if (ao.data.out == 0) {
 						stats[href].count_in++;
-						dates[dt[0]].inb++;
-						times[dt2[0]].inb++;
+						dates[msgDate].inb++;
+						times[msgTime].inb++;
 					} else {
 						stats[href].count_out++;
-						dates[dt[0]].out++;
-						times[dt2[0]].out++;
+						dates[msgDate].out++;
+						times[msgTime].out++;
 					}
 					if(DEBUG) {
 						out.debug('[stats] ' + href + ' handled');
@@ -433,7 +456,7 @@ if(LANG == undefined) {
 
 	var prev = -1;
 
-	function stable() {
+	function run() {
 		if (prev == index && !finished) {
 			la();
 			if(DEBUG) {
@@ -442,9 +465,9 @@ if(LANG == undefined) {
 		}
 		
 		prev = index;
-		if (!finished) setTimeout("stable()", 5000);
+		if (!finished) setTimeout("run()", 5000);
 	}
 
-	stable();
+	run();
 
 }
