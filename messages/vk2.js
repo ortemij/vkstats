@@ -7,9 +7,11 @@ each (nav.childNodes, function (i, x) {
 	}
 });
 
-var VERSION = 2.1;
+var VERSION = 2.2;
 
 var DEBUG = false;
+
+var MESSAGES_PER_PAGE = 20;
 
 var supportedLanguages = {
 	russian: 0,
@@ -25,12 +27,13 @@ var getKeys = function(obj){
 	return keys;
 }
 
-var userLang = getCookie('remixlang');
+var userLang = langConfig.id;
+
 
 var languages = [];
 
 languages[supportedLanguages.russian] = {
-	dateDelimiter: 'в',
+	dateDelimiter: ' в ',
 	appName: 'Статистика личной переписки',
 	nameCol: 'Имя',
 	numberOfMessagesCol: 'Всего сообщений',
@@ -42,12 +45,13 @@ languages[supportedLanguages.russian] = {
 	timeWithMostMessages: 'Больше всего сообщений',
 	thankYou: 'Спасибо, что дождались, надеемся, оно того стоило!',
 	exportByTime: 'Экспорт статистики по времени',
-	exportByMessages: 'Экспорт статистики по сообщениям'
+	exportByMessages: 'Экспорт статистики по сообщениям',
+	warning: 'Внимание! Не удалось обработать сообщений'
 }
 
 languages[supportedLanguages.english] = {
-	dateDelimiter: 'at',
-	secondaryDateDelimiter: 'on',
+	dateDelimiter: ' at ',
+	secondaryDateDelimiter: ' on ',
 	appName: 'Private messages statistics',
 	nameCol: 'Name',
 	numberOfMessagesCol: 'Number of messages',
@@ -59,11 +63,12 @@ languages[supportedLanguages.english] = {
 	timeWithMostMessages: 'Time with most messages',
 	thankYou: 'Thank you for your time, we hope it was worth it!',
 	exportByTime: 'Export time statistics',
-	exportByMessages: 'Export message statistics'
+	exportByMessages: 'Export message statistics',
+	warning: 'Warning! Failed to process messages'
 }
 
 languages[supportedLanguages.ukrainian] = {
-	dateDelimiter: 'о',
+	dateDelimiter: ' о ',
 	appName: 'Статистика приватні переписки',
 	nameCol: "Ім'я",
 	numberOfMessagesCol: 'Усього повідомлень',
@@ -75,7 +80,8 @@ languages[supportedLanguages.ukrainian] = {
 	timeWithMostMessages: 'Найбільше повідомлень',
 	thankYou: 'Спасибі, що дочекалися, сподіваємося, воно того коштувало!',
 	exportByTime: 'Експорт статистики за часом',
-	exportByMessages: 'Експорт статистики за повідомленням'
+	exportByMessages: 'Експорт статистики за повідомленням',
+	warning: 'Увага! Не вдалося обробити повідомлень'
 }
 
 
@@ -92,6 +98,8 @@ if(LANG == undefined) {
 	var dates = {};
 	var times = {};
 
+
+	var skipped = 0;
 	var ei = 0;
 	var eo = 0;
 	var index = 0;
@@ -216,6 +224,9 @@ if(LANG == undefined) {
 		},
 		generate: function () {
 			ge('content').innerHTML = LANG.thankYou + '<br/><br/>';
+			if(skipped > 0) {
+				ge('content').innerHTML += LANG.warning + ': ' + skipped + '<br/>';
+			}
 			this.generateTime();
 			ge('content').innerHTML += '<a href="#" onclick="javascript: out.exportDT();">' + LANG.exportByTime + '</a> | <a href="#" onclick="javascript: out.exportMsgs();">' + LANG.exportByMessages + '</a><br/>';
 			ge('content').appendChild(ce('div', {id: 'export'}));
@@ -347,7 +358,7 @@ if(LANG == undefined) {
 			resultingDate = splitDate[1];
 		}
 		
-		return resultingDate + ' ' + resultingTime;
+		return {date: resultingDate, time: resultingTime};
 	}
 
 	function la() {
@@ -356,71 +367,83 @@ if(LANG == undefined) {
 		ajax.onDone = function (ao, rt) {
 			if (ao.data.st != p.st || ao.data.out != p.out) return; // synchronization failed
 		
-			var r = eval('(' + rt + ')'),
-				t = r.content,
-				d = ce('div');
-			d.innerHTML = t;
-			each (
-				geByClass('name', d, 'div'), 
-				function (i, x) {
-					var href = x.children[0].href;
-					var name = x.children[0].innerHTML;
-					var ch = x.parentNode.children;
-					var latestDate = ch[ch.length - 1].innerHTML;
+			try {
+				var r = eval('(' + rt + ')');
+				var t = r.content;
+				var d = ce('div');
 					
-					var parsedTS = parseTS(latestDate).split(' ');
-					
-					msgDate = parsedTS[0];
-					msgTime = parsedTS[1];
-					
-					if (dates[msgDate] == undefined) dates[msgDate] = {inb: 0, out: 0};
-					if (times[msgTime] == undefined) times[msgTime] = {inb: 0, out: 0};
-									
-					if (href2name[href] == undefined) {
-						href2name[href] = name;
+				d.innerHTML = t;
+			
+				each (
+					geByClass('name', d, 'div'), 
+					function (i, x) {
+						var href = x.children[0].href;
+						var name = x.children[0].innerHTML;
+						var ch = x.parentNode.children;
+						var latestDate = ch[ch.length - 1].innerHTML;
+						
+						var parsedTS = parseTS(latestDate);
+						
+						msgDate = parsedTS.date;
+						msgTime = parsedTS.time;
+						
+						if (dates[msgDate] == undefined) dates[msgDate] = {inb: 0, out: 0};
+						if (times[msgTime] == undefined) times[msgTime] = {inb: 0, out: 0};
+										
+						if (href2name[href] == undefined) {
+							href2name[href] = name;
+							if(DEBUG) {
+								out.debug('[h2n] ' + href + ' -> ' + name);
+							}
+						}
+						
+						if (stats[href] == undefined) {
+						
+							lastId = x.parentNode.parentNode.id.substring(4);
+						
+							stats[href] = {
+								count_out: 0,
+								count_in: 0,
+								lastMsgId: lastId,
+								lastMsgTime: latestDate
+							};
+							if(DEBUG) {
+								out.debug('[stats] ' + href + ' started (lastMsgId=' + '; lastMsgTime=' + latestDate + ')');
+							}
+						}
+						
+						if (ao.data.out == 0) {
+							stats[href].count_in++;
+							dates[msgDate].inb++;
+							times[msgTime].inb++;
+						} else {
+							stats[href].count_out++;
+							dates[msgDate].out++;
+							times[msgTime].out++;
+						}
 						if(DEBUG) {
-							out.debug('[h2n] ' + href + ' -> ' + name);
+							out.debug('[stats] ' + href + ' handled');
 						}
 					}
-					
-					if (stats[href] == undefined) {
-					
-						lastId = x.parentNode.parentNode.id.substring(4);
-					
-						stats[href] = {
-							count_out: 0,
-							count_in: 0,
-							lastMsgId: lastId,
-							lastMsgTime: latestDate
-						};
-						if(DEBUG) {
-							out.debug('[stats] ' + href + ' started (lastMsgId=' + '; lastMsgTime=' + latestDate + ')');
-						}
-					}
-					
-					if (ao.data.out == 0) {
-						stats[href].count_in++;
-						dates[msgDate].inb++;
-						times[msgTime].inb++;
-					} else {
-						stats[href].count_out++;
-						dates[msgDate].out++;
-						times[msgTime].out++;
-					}
-					if(DEBUG) {
-						out.debug('[stats] ' + href + ' handled');
-					}
+				);
+				
+				if(DEBUG) {
+					out.debug('[ajax] handled successfully');
 				}
-			);
-			if(DEBUG) {
-				out.debug('[ajax] handled');
+			
+			} catch(err) {
+				if(DEBUG) {
+					out.debug('[ajax] handled with error: ' + err);
+				}
+				skipped += MESSAGES_PER_PAGE;
 			}
 			
-			index += 20;
+			
+			index += MESSAGES_PER_PAGE;
 			out.progress();
 			
 			var spent = (new Date()).getTime() - start;
-			p.st += 20;
+			p.st += MESSAGES_PER_PAGE;
 			if(DEBUG) {
 				//To process only one page when debugging
 				p.st += 999999999999999;
