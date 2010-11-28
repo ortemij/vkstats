@@ -9,7 +9,7 @@ each (nav.childNodes, function (i, x) {
 
 var VERSION = 2.3;
 
-var DEBUG = false;
+var DEBUG = true;
 var DEBUG_COUNT = 1000;
 
 var MESSAGES_PER_PAGE = 20;
@@ -368,7 +368,7 @@ if(LANG == undefined) {
 		ajax.onDone = function (ao, rt) {
 			if (ao.data.st != p.st || ao.data.out != p.out) return; // synchronization failed
 		
-			if (rt.match(/html/)) {
+			if (rt.match(/<!/)) {
 				if (DEBUG) {
 					console.debug('[ajax] stop cause blank.php, waiting for continue...');
 				}
