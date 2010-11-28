@@ -7,9 +7,10 @@ each (nav.childNodes, function (i, x) {
 	}
 });
 
-var VERSION = 2.2;
+var VERSION = 2.3;
 
 var DEBUG = false;
+var DEBUG_COUNT = 1000;
 
 var MESSAGES_PER_PAGE = 20;
 
@@ -165,7 +166,7 @@ if(LANG == undefined) {
 			ge('scnt').innerHTML = LANG.messagesProcessed + ': ' + index;
 		},
 		debug: function (msg) {
-			console.trace(msg);
+			console.debug(msg);
 		},
 		generateCount: function () {
 			this.countDiv = ce('div');
@@ -367,6 +368,13 @@ if(LANG == undefined) {
 		ajax.onDone = function (ao, rt) {
 			if (ao.data.st != p.st || ao.data.out != p.out) return; // synchronization failed
 		
+			if (rt.match(/html/)) {
+				if (DEBUG) {
+					console.debug('[ajax] stop cause blank.php, waiting for continue...');
+				}
+				return;
+			}
+
 			try {
 				var r = eval('(' + rt + ')');
 				var t = r.content;
@@ -408,7 +416,7 @@ if(LANG == undefined) {
 								lastMsgTime: latestDate
 							};
 							if(DEBUG) {
-								out.debug('[stats] ' + href + ' started (lastMsgId=' + '; lastMsgTime=' + latestDate + ')');
+								out.debug('[stats] ' + href + ' started (lastMsgId=' + lastId + '; lastMsgTime=' + latestDate + ')');
 							}
 						}
 						
@@ -444,9 +452,9 @@ if(LANG == undefined) {
 			
 			var spent = (new Date()).getTime() - start;
 			p.st += MESSAGES_PER_PAGE;
-			if(DEBUG) {
+			if (DEBUG) {
 				//To process only one page when debugging
-				p.st += 999999999999999;
+				if (p.st >= DEBUG_COUNT) p.st += 999999999999999;
 			}
 			if (p.st < ((p.out == 0) ? ei : eo)) {
 				if (spent < 1000) {
