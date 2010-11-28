@@ -9,7 +9,7 @@ each (nav.childNodes, function (i, x) {
 
 var VERSION = 2.3;
 
-var DEBUG = true;
+var DEBUG = false;
 var DEBUG_COUNT = 1000;
 
 var MESSAGES_PER_PAGE = 20;
