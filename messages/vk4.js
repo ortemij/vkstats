@@ -34,6 +34,7 @@ var SYS = {
 				authorizing: 'Авторизация',
 				authorized: 'Авторизация завершена',
 				loadingMessageNumbers: 'Определение числа сообщений',
+				fatal: 'Критическая ошибка. Пожалуйста, сообщите приведённые ниже данные разработчику.',
 				appName: 'Статистика личной переписки',
 				nameCol: 'Имя',
 				numberOfMessagesCol: 'Всего сообщений',
@@ -59,6 +60,7 @@ var SYS = {
 				authorizing: 'Авторизация',
 				authorized: 'Авторизация завершена',
 				loadingMessageNumbers: 'Определение числа сообщений',
+				fatal: 'Критическая ошибка. Пожалуйста, сообщите приведённые ниже данные разработчику.',
 				appName: 'Статистика приватні переписки',
 				nameCol: "Ім'я",
 				numberOfMessagesCol: 'Усього повідомлень',
@@ -84,6 +86,7 @@ var SYS = {
 				authorizing: 'Authorizing',
 				authorized: 'Authorization complete',
 				loadingMessageNumbers: 'Getting message numbers...',
+				fatal: 'Fatal error. Please, send the info below to the developers',
 				appName: 'Private messages statistics',
 				nameCol: 'Name',
 				numberOfMessagesCol: 'Number of messages',
@@ -106,8 +109,11 @@ var SYS = {
 	},
 	
 	fatal: function(obj) {
-		//TODO show to the user so they can copy it and report to the developers
-		alert(obj);
+		ui.setHeader(user.lang.fatal);
+		ui.clearContent();
+		var t = ce('textarea', {'cols': 80, 'rows': 20}, {fontFamily: 'Courier new'});
+		t.innerHTML = obj;
+		ui.appendContentElement(t);
 		throw obj;
 	}
 }
@@ -237,8 +243,15 @@ var messageProcessor = {
 		ui.displayStats(statCounter.statByUser);
 	},
 	
-	onMessagesLoaded: function(response, out) {	
-		var parsedResponse = eval('(' + response + ')').response;
+	onMessagesLoaded: function(response, out) {
+	
+		var parsedResponse = eval('(' + response + ')');
+		
+		if(parsedResponse.error != undefined) {
+			SYS.fatal(response);
+		}
+		
+		parsedResponse.response;
 		var currentMessages = parsedResponse[0];
 		
 		for(var i = 1; i < parsedResponse.length; i ++) {
@@ -282,16 +295,20 @@ var messageProcessor = {
 	},
 
 	onMessageNumbersLoaded: function(response, out) {
-		var parsedResponse = eval('(' + response + ')').response;
-		if(!out) {
-			this.incomingMessages = parsedResponse[0];
-		} else {
-			this.outgoingMessages = parsedResponse[0];
-		}
-		
-		if(this.incomingMessages != undefined && this.outgoingMessages != undefined) {
-			ui.setHeader(user.lang.processingMessages + '...');
-			this.startProcessingMessages();
+		try {
+			var parsedResponse = eval('(' + response + ')').response;
+			if(!out) {
+				this.incomingMessages = parsedResponse[0];
+			} else {
+				this.outgoingMessages = parsedResponse[0];
+			}
+			
+			if(this.incomingMessages != undefined && this.outgoingMessages != undefined) {
+				ui.setHeader(user.lang.processingMessages + '...');
+				this.startProcessingMessages();
+			}
+		} catch(e) {
+			SYS.fatal(response);
 		}
 	},
 
