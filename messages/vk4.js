@@ -23,7 +23,7 @@ var SYS = {
 	APP_ID: 2045168,
 	LOGIN_SETTING: 0 + 4096,
 	DEBUG: false,
-	MESSAGES_IN_DEBUG_MODE: 100,
+	MESSAGES_TO_PROCESS_IN_DEBUG_MODE: 100,
 	MESSAGES_PER_REQUEST: 100,
 	LANGUAGES: {
 		0: {
@@ -39,6 +39,8 @@ var SYS = {
 				receivedCol: 'Вы получили',
 				lastMsgCol: 'Последнее сообщение',
 				messagesProcessed: 'Обработано сообщений',
+				incoming: 'входящих',
+				outgoing: 'исходящих',
 				dayWithMostMessages: 'Больше всего сообщений было',
 				timeWithMostMessages: 'Больше всего сообщений',
 				thankYou: 'Спасибо, что дождались, надеемся, оно того стоило!',
@@ -60,6 +62,8 @@ var SYS = {
 				receivedCol: 'Ви одержали',
 				lastMsgCol: 'Останнє повідомлення',
 				messagesProcessed: 'Оброблене повідомлень',
+				incoming: 'входящих',
+				outgoing: 'исходящих',
 				dayWithMostMessages: 'Найбільше повідомлень було',
 				timeWithMostMessages: 'Найбільше повідомлень',
 				thankYou: 'Спасибі, що дочекалися, сподіваємося, воно того коштувало!',
@@ -81,6 +85,8 @@ var SYS = {
 				receivedCol: 'Received',
 				lastMsgCol: 'Last Message',
 				messagesProcessed: 'Messages processed',
+				incoming: 'incoming',
+				outgoing: 'outgoing',
 				dayWithMostMessages: 'Day with most messages',
 				timeWithMostMessages: 'Time with most messages',
 				thankYou: 'Thank you for your time, we hope it was worth it!',
@@ -117,6 +123,35 @@ var ui = {
 	
 	appendContentElement: function(element) {
 		ge('content').appendChild(element);
+	},
+	
+	createProgressBar: function() {
+		var pr = ce('div',
+			{id: 'sprogr'},
+			{position: 'relative', width: '100%', height: '30px', margin: '3px', backgroundColor: '#DAE2E8'}
+		);
+		pr.appendChild(
+			ce('div',
+			{id: 'sprogb'}, {width: '0', height: 'inherit', backgroundColor: '#45688E'}
+			)
+		);
+		pr.appendChild(
+			ce('div',
+			{id: 'scnt'}, {position: 'absolute', left: '10px', top: '7px', width: '400px', height: 'inherit', color: '#000', zIndex: 69}
+			)
+		);
+		
+		this.clearContent();
+		this.appendContentElement(pr);
+	},
+	
+	updateProgressBar: function(processedIncoming, totalIncoming, processedOutgoing, totalOutgoing) {
+		var processed = processedIncoming + processedOutgoing;
+		var total = totalIncoming + totalOutgoing;
+		ge('sprogb').style.width = (100 * processed / total) + '%';
+		ge('scnt').innerHTML = user.lang.messagesProcessed + ': ' +
+			user.lang.incoming + ': ' + processedIncoming + '/' + totalIncoming + '; ' +
+			user.lang.outgoing + ': ' + processedOutgoing + '/' + totalOutgoing;
 	}
 };
 
@@ -124,8 +159,13 @@ var messageProcessor = {
 
 	incomingMessages: undefined,
 	outgoingMessages: undefined,
+	
+	startProcessingMessages: function() {
+		ui.createProgressBar();
+		ui.updateProgressBar(0, this.incomingMessages, 0, this.outgoingMessages);
+	},
 
-	onMessagesLoaded: function(response, out) {
+	onMessageNumbersLoaded: function(response, out) {
 		var parsedResponse = eval('(' + response + ')').response;
 		if(!out) {
 			this.incomingMessages = parsedResponse[0];
@@ -134,13 +174,14 @@ var messageProcessor = {
 		}
 		
 		if(this.incomingMessages != undefined && this.outgoingMessages != undefined) {
-			ui.setContent('Loaded message numbers: in=' + this.incomingMessages + '; out=' + this.outgoingMessages);
+			ui.setHeader(user.lang.processingMessages + '...');
+			this.startProcessingMessages();
 		}
 	},
 
 	getNumberOfMessages: function() {
-		this.api.getMessages(0, 0, 1, function(ao, rt) {messageProcessor.onMessagesLoaded(rt, 0)});
-		this.api.getMessages(1, 0, 1, function(ao, rt) {messageProcessor.onMessagesLoaded(rt, 1)});
+		this.api.getMessages(0, 0, 1, function(ao, rt) {messageProcessor.onMessageNumbersLoaded(rt, 0)});
+		this.api.getMessages(1, 0, 1, function(ao, rt) {messageProcessor.onMessageNumbersLoaded(rt, 1)});
 	},
 
 	start: function(api) {
