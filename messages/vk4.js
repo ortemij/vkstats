@@ -6,6 +6,22 @@ var getKeys = function(obj){
 	return keys;
 }
 
+var nKeys = function(obj){
+	var keys = 0;
+	for(var key in obj){
+		keys ++;
+	}
+	return keys;
+}
+
+var splitArrayToSubArrays = function(arr, maxPieceSize) {
+	var result = [];
+	for(var i = 0; i < arr.length / maxPieceSize; i ++) {
+		result.push(arr.slice(maxPieceSize * i, maxPieceSize * (i + 1)));
+	}
+	return result;
+}
+
 
 //Here goest the google code closure-compressed md5 calculating function
 var rotateLeft=function(a,b){return a<<b|a>>>32-b},addUnsigned=function(a,b){var g,h,i,j,c;i=a&2147483648;j=b&2147483648;g=a&1073741824;h=b&1073741824;c=(a&1073741823)+(b&1073741823);if(g&h)return c^2147483648^i^j;return g|h?c&1073741824?c^3221225472^i^j:c^1073741824^i^j:c^i^j},F=function(a,b,g){return a&b|~a&g},G=function(a,b,g){return a&g|b&~g},H=function(a,b,g){return a^b^g},I=function(a,b,g){return b^(a|~g)},FF=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(F(b,g,h),i),c));return addUnsigned(rotateLeft(a,
@@ -27,6 +43,7 @@ var SYS = {
 	MESSAGES_TO_PROCESS_IN_DEBUG_MODE: 100,
 	MESSAGES_PER_REQUEST: 100,
 	MSEC_BETWEEN_REQUESTS: 1000,
+	MAX_USERS_PER_REQUEST: 1000,
 	LANGUAGES: {
 		0: {
 			name: 'russian',
@@ -168,7 +185,7 @@ var ui = {
 			user.lang.outgoing + ': ' + processedOutgoing + '/' + totalOutgoing;
 	},
 	
-	displayStats: function(stats) {
+	displayStats: function(stats, userData) {
 		var table = ce('table', {className: 'wikiTable'});
 		table.innerHTML += '<thead><th></th><th>' + user.lang.nameCol + '</th><th>' + user.lang.numberOfMessagesCol + '</th><th>' + user.lang.sentCol + '</th><th>' + user.lang.receivedCol + '</th><th>' + user.lang.lastMsgCol + '</th></thead>';
 
@@ -180,7 +197,7 @@ var ui = {
 			data = stats[uid];
 			var tr = ce('tr');
 			var tdR = ce('td', {innerHTML: rank ++});
-			var tdN = ce('td', {innerHTML: '<a href="/id' + uid + '">' + uid + '</a>'});
+			var tdN = ce('td', {innerHTML: '<a href="/id' + uid + '">' + userData[uid].first_name + ' ' + userData[uid].last_name + '</a>'});
 			var tdT = ce('td', {innerHTML: data.in + data.out});
 			var tdO = ce('td', {innerHTML: data.in});
 			var tdI = ce('td', {innerHTML: data.out});
@@ -204,6 +221,7 @@ var ui = {
 
 var statCounter = {
 	statByUser: {},
+	userData: {},
 	
 	createEmptyStatsFor: function(message) {
 		var newStats = {
@@ -237,10 +255,29 @@ var messageProcessor = {
 	outgoingMessages: undefined,
 	processedOutgoingMessages: 0,
 	
+	onUserProfilesLoaded: function(response) {
+		parsedResponse = eval('(' + response + ')');
+		if(parsedResponse.response == undefined) {
+			SYS.fatal(response);
+		}
+		
+		parsedResponse = parsedResponse.response;
+		
+		for(var i = 0; i < parsedResponse.length; i ++) {
+			statCounter.userData[parsedResponse[i].uid] = parsedResponse[i];
+		}
+		
+		if(nKeys(statCounter.userData) == nKeys(statCounter.statByUser)) {
+			ui.setHeader(user.lang.done + '!');
+			ui.displayStats(statCounter.statByUser, statCounter.userData);
+		}
+		
+	},
+	
 	onAllMessagesLoaded: function() {
 		ui.updateProgressBar(this.processedIncomingMessages, this.incomingMessages, this.processedOutgoingMessages, this.outgoingMessages);
-		ui.setHeader(user.lang.done + '!');
-		ui.displayStats(statCounter.statByUser);
+		
+		this.api.getUserNames(getKeys(statCounter.statByUser),function(ao,rt) {messageProcessor.onUserProfilesLoaded(rt);});
 	},
 	
 	onMessagesLoaded: function(response, out) {
@@ -408,6 +445,52 @@ var apiConnector = {
 			url: request,
 			onDone: onDone
 		});
+	},
+	
+	doGetUserData: function(ids, onDone) {
+		var request = this.API_ADDRESS + '?';
+		var toMd5 = user.uid;
+		
+		request += 'api_id' + '=' + this.appId + '&';
+		toMd5 += 'api_id' + '=' + this.appId;
+		
+		//request += 'method=getProfiles&';
+		//toMd5 += 'method=getProfiles';
+		
+		request += 'format=JSON&';
+		toMd5 += 'format=JSON';
+		
+		request += 'method=getProfiles&';
+		toMd5 += 'method=getProfiles';
+		
+		request += 'sid=' + this.sid + '&';
+		
+		var uids = ids.join(',');
+		
+		request += 'uids=' + uids + '&';
+		toMd5 += 'uids=' + uids;
+		
+		toMd5 += 'v=3.0';
+		toMd5 += this.secret;
+		
+		request += 'sig=' + md5(toMd5) + '&v=3.0';
+		
+		Ajax.Get({
+			url: request,
+			onDone: onDone
+		});
+	},
+	
+	getUserNames: function(ids, onDone) {
+		ids = splitArrayToSubArrays(ids, SYS.MAX_USERS_PER_REQUEST);
+		this.onDone = onDone;
+		for(var i = 0; i < ids.length; i ++) {
+			if(i == 0) {
+				this.doGetUserData(ids[i], onDone);
+			} else {
+				setTimeout('apiConnector.doGetUserData([' + ids[i] + '], apiConnector.onDone)', i * SYS.MSEC_BETWEEN_REQUESTS);
+			}
+		}
 	}
 }
 
