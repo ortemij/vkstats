@@ -6,6 +6,7 @@ var getKeys = function(obj){
 	return keys;
 }
 
+
 //Here goest the google code closure-compressed md5 calculating function
 var rotateLeft=function(a,b){return a<<b|a>>>32-b},addUnsigned=function(a,b){var g,h,i,j,c;i=a&2147483648;j=b&2147483648;g=a&1073741824;h=b&1073741824;c=(a&1073741823)+(b&1073741823);if(g&h)return c^2147483648^i^j;return g|h?c&1073741824?c^3221225472^i^j:c^1073741824^i^j:c^i^j},F=function(a,b,g){return a&b|~a&g},G=function(a,b,g){return a&g|b&~g},H=function(a,b,g){return a^b^g},I=function(a,b,g){return b^(a|~g)},FF=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(F(b,g,h),i),c));return addUnsigned(rotateLeft(a,
 j),b)},GG=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(G(b,g,h),i),c));return addUnsigned(rotateLeft(a,j),b)},HH=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(H(b,g,h),i),c));return addUnsigned(rotateLeft(a,j),b)},II=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(I(b,g,h),i),c));return addUnsigned(rotateLeft(a,j),b)},convertToWordArray=function(a){var b,g=a.length;b=g+8;for(var h=((b-b%64)/64+1)*16,i=Array(h-1),j=0,c=0;c<g;){b=(c-c%4)/4;j=c%4*
@@ -25,6 +26,7 @@ var SYS = {
 	DEBUG: false,
 	MESSAGES_TO_PROCESS_IN_DEBUG_MODE: 100,
 	MESSAGES_PER_REQUEST: 100,
+	MSEC_BETWEEN_REQUESTS: 1000,
 	LANGUAGES: {
 		0: {
 			name: 'russian',
@@ -38,6 +40,8 @@ var SYS = {
 				sentCol: 'Вы отправили',
 				receivedCol: 'Вы получили',
 				lastMsgCol: 'Последнее сообщение',
+				processingMessages: 'Обработка сообщений',
+				done: 'Обработка завершена',
 				messagesProcessed: 'Обработано сообщений',
 				incoming: 'входящих',
 				outgoing: 'исходящих',
@@ -62,6 +66,8 @@ var SYS = {
 				receivedCol: 'Ви одержали',
 				lastMsgCol: 'Останнє повідомлення',
 				messagesProcessed: 'Оброблене повідомлень',
+				processingMessages: 'Обработка сообщений',
+				done: 'Обработка завершена',
 				incoming: 'входящих',
 				outgoing: 'исходящих',
 				dayWithMostMessages: 'Найбільше повідомлень було',
@@ -85,6 +91,8 @@ var SYS = {
 				receivedCol: 'Received',
 				lastMsgCol: 'Last Message',
 				messagesProcessed: 'Messages processed',
+				processingMessages: 'Processing messages',
+				done: 'Processing complete',
 				incoming: 'incoming',
 				outgoing: 'outgoing',
 				dayWithMostMessages: 'Day with most messages',
@@ -127,17 +135,17 @@ var ui = {
 	
 	createProgressBar: function() {
 		var pr = ce('div',
-			{id: 'sprogr'},
+			{id: 'progressbar'},
 			{position: 'relative', width: '100%', height: '30px', margin: '3px', backgroundColor: '#DAE2E8'}
 		);
 		pr.appendChild(
 			ce('div',
-			{id: 'sprogb'}, {width: '0', height: 'inherit', backgroundColor: '#45688E'}
+			{id: 'progressbarbg'}, {width: '0', height: 'inherit', backgroundColor: '#45688E'}
 			)
 		);
 		pr.appendChild(
 			ce('div',
-			{id: 'scnt'}, {position: 'absolute', left: '10px', top: '7px', width: '400px', height: 'inherit', color: '#000', zIndex: 69}
+			{id: 'progresstext'}, {position: 'absolute', left: '10px', top: '7px', width: '400px', height: 'inherit', color: '#000', zIndex: 69}
 			)
 		);
 		
@@ -148,21 +156,129 @@ var ui = {
 	updateProgressBar: function(processedIncoming, totalIncoming, processedOutgoing, totalOutgoing) {
 		var processed = processedIncoming + processedOutgoing;
 		var total = totalIncoming + totalOutgoing;
-		ge('sprogb').style.width = (100 * processed / total) + '%';
-		ge('scnt').innerHTML = user.lang.messagesProcessed + ': ' +
+		ge('progressbarbg').style.width = (100 * processed / total) + '%';
+		ge('progresstext').innerHTML = user.lang.messagesProcessed + ': ' +
 			user.lang.incoming + ': ' + processedIncoming + '/' + totalIncoming + '; ' +
 			user.lang.outgoing + ': ' + processedOutgoing + '/' + totalOutgoing;
+	},
+	
+	displayStats: function(stats) {
+		var table = ce('table', {className: 'wikiTable'});
+		table.innerHTML += '<thead><th></th><th>' + user.lang.nameCol + '</th><th>' + user.lang.numberOfMessagesCol + '</th><th>' + user.lang.sentCol + '</th><th>' + user.lang.receivedCol + '</th><th>' + user.lang.lastMsgCol + '</th></thead>';
+
+		var tbody = ce('tbody');
+		table.appendChild(tbody);
+		
+		var rank = 1;
+		for (var uid in stats) {
+			data = stats[uid];
+			var tr = ce('tr');
+			var tdR = ce('td', {innerHTML: rank ++});
+			var tdN = ce('td', {innerHTML: '<a href="/id' + uid + '">' + uid + '</a>'});
+			var tdT = ce('td', {innerHTML: data.in + data.out});
+			var tdO = ce('td', {innerHTML: data.in});
+			var tdI = ce('td', {innerHTML: data.out});
+			var tdL = ce('td', {innerHTML: '<a href="mail.php?act=show&id=' + data.lastMessageId + '">' + data.lastMessageDate + '</a>'});
+
+			tr.appendChild(tdR);
+			tr.appendChild(tdN);
+			tr.appendChild(tdT);
+			tr.appendChild(tdO);
+			tr.appendChild(tdI);
+			tr.appendChild(tdL);
+			tbody.appendChild(tr);
+		}
+		
+		var div = ce('div');
+		div.appendChild(table);
+		this.clearContent();
+		this.appendContentElement(div);
 	}
 };
+
+var statCounter = {
+	statByUser: {},
+	
+	createEmptyStatsFor: function(message) {
+		var newStats = {
+			in: 0,
+			out: 0,
+			lastMessageDate: message.date,
+			lastMessageId: message.mid
+			// TODO: add words distribution
+		};
+		this.statByUser[message.uid] = newStats;
+		return newStats;
+	},
+	
+	processSingleMessage: function(message) {
+		userStats = this.statByUser[message.uid];
+		if(userStats == undefined) {
+			userStats = this.createEmptyStatsFor(message);
+		}
+		if(!message.out) {
+			userStats.in ++;
+		} else {
+			userStats.out ++;
+		}
+	}
+}
 
 var messageProcessor = {
 
 	incomingMessages: undefined,
+	processedIncomingMessages: 0,
 	outgoingMessages: undefined,
+	processedOutgoingMessages: 0,
+	
+	onAllMessagesLoaded: function() {
+		ui.updateProgressBar(this.processedIncomingMessages, this.incomingMessages, this.processedOutgoingMessages, this.outgoingMessages);
+		ui.setHeader(user.lang.done + '!');
+		ui.displayStats(statCounter.statByUser);
+	},
+	
+	onMessagesLoaded: function(response, out) {	
+		var parsedResponse = eval('(' + response + ')').response;
+		var currentMessages = parsedResponse[0];
+		
+		for(var i = 1; i < parsedResponse.length; i ++) {
+			statCounter.processSingleMessage(parsedResponse[i]);
+		}
+		
+		var offset = 0;
+		if(!out) {
+			this.processedIncomingMessages += parsedResponse.length - 1;
+			offset = this.processedIncomingMessages + (currentMessages - this.incomingMessages);
+			if(offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
+				out = 1;
+			}
+		} else {
+			this.processedOutgoingMessages += parsedResponse.length - 1;
+			offset = this.processedOutgoingMessages + (currentMessages - this.outgoingMessages);
+			if(offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
+				this.onAllMessagesLoaded();
+				return;
+			}
+		}
+		
+		ui.updateProgressBar(this.processedIncomingMessages, this.incomingMessages, this.processedOutgoingMessages, this.outgoingMessages);
+		
+		var elapsedTime = (new Date()).getTime() - this.requestStartTime;
+		if(elapsedTime >= SYS.MSEC_BETWEEN_REQUESTS) {
+			this.requestStartTime = (new Date()).getTime();
+			this.api.getMessages(out, offset, SYS.MESSAGES_PER_REQUEST, function(ao, rt) {messageProcessor.onMessagesLoaded(rt, out)});
+		} else {
+			this.out = out;
+			this.offset = offset;
+			setTimeout("messageProcessor.requestStartTime = (new Date()).getTime(); messageProcessor.api.getMessages(messageProcessor.out, messageProcessor.offset, SYS.MESSAGES_PER_REQUEST, function(ao, rt) {messageProcessor.onMessagesLoaded(rt, messageProcessor.out)});", SYS.MSEC_BETWEEN_REQUESTS - elapsedTime);
+		}
+	},
 	
 	startProcessingMessages: function() {
 		ui.createProgressBar();
 		ui.updateProgressBar(0, this.incomingMessages, 0, this.outgoingMessages);
+		this.requestStartTime = (new Date()).getTime();
+		this.api.getMessages(0, 0, SYS.MESSAGES_PER_REQUEST, function(ao, rt) {messageProcessor.onMessagesLoaded(rt, 0)});
 	},
 
 	onMessageNumbersLoaded: function(response, out) {
