@@ -251,7 +251,7 @@ var messageProcessor = {
 			SYS.fatal(response);
 		}
 		
-		parsedResponse.response;
+		parsedResponse = parsedResponse.response;
 		var currentMessages = parsedResponse[0];
 		
 		for(var i = 1; i < parsedResponse.length; i ++) {
@@ -264,6 +264,7 @@ var messageProcessor = {
 			offset = this.processedIncomingMessages + (currentMessages - this.incomingMessages);
 			if(offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
 				out = 1;
+				offset = 0;
 			}
 		} else {
 			this.processedOutgoingMessages += parsedResponse.length - 1;
@@ -327,6 +328,7 @@ var messageProcessor = {
 var apiConnector = {
 
 	API_ADDRESS: '/api.php',
+	LOGON_FAIL_STRING: 'login_fail',
 	LOGON_SUCCESS_STRING: 'login_success',
 
 	logon: function(appId, settings) {
@@ -348,20 +350,26 @@ var apiConnector = {
 	
 	onLogonFrameLoaded: function(frameLocation) {
 		var location = unescape(frameLocation);
-		if(location.indexOf(this.LOGON_SUCCESS_STRING) == -1) {
+		//alert(location);
+		if(location.indexOf(this.LOGON_FAIL_STRING) != -1) {
 			SYS.fatal('failed to log on: ' + location);
 		}
 		
-		sessionInfo = eval('(' + location.split('#')[1].split('=')[1] + ')');
+		if(location.indexOf(this.LOGON_SUCCESS_STRING) != -1) {
 		
-		user.uid = sessionInfo.mid;
-		this.secret = sessionInfo.secret;
-		this.sid = sessionInfo.sid;
-		
-		ui.setHeader(user.lang.authorized);
-		ui.clearContent();
-		
-		messageProcessor.start(this);
+			sessionInfo = eval('(' + location.split('#')[1].split('=')[1] + ')');
+			
+			user.uid = sessionInfo.mid;
+			this.secret = sessionInfo.secret;
+			this.sid = sessionInfo.sid;
+			
+			ui.setHeader(user.lang.authorized);
+			ui.clearContent();
+			
+			messageProcessor.start(this);
+		} else {
+			//...
+		}
 	},
 	
 	getMessages: function(out, offset, count, onDone) {
