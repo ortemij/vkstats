@@ -104,7 +104,8 @@ var SYS = {
 				thankYou: 'Спасибо, что дождались, надеемся, оно того стоило!',
 				exportByTime: 'Экспорт статистики по времени',
 				exportByMessages: 'Экспорт статистики по сообщениям',
-				warning: 'Внимание! Не удалось обработать сообщений'
+				warning: 'Внимание! Не удалось обработать сообщений',
+				friendsOnly: 'Учитывать только друзей'
 			}
 		},
 		1: {
@@ -138,7 +139,8 @@ var SYS = {
 				thankYou: 'Спасибі, що дочекалися, сподіваємося, воно того коштувало!',
 				exportByTime: 'Експорт статистики за часом',
 				exportByMessages: 'Експорт статистики за повідомленням',
-				warning: 'Увага! Не вдалося обробити повідомлень'
+				warning: 'Увага! Не вдалося обробити повідомлень',
+				friendsOnly: 'Враховувати тільки друзів'
 			}
 		},
 		3: {
@@ -160,7 +162,7 @@ var SYS = {
 				receivedCol: 'Received',
 				symbolsCol: 'Total symbols',
 				sentSymbolsCol: 'Sent symbols',
-				receivedSymbolsCol: 'ReceivedSymbols',
+				receivedSymbolsCol: 'Received symbols',
 				lastMsgCol: 'Last Message',
 				messagesProcessed: 'Messages processed',
 				processingMessages: 'Processing messages',
@@ -172,7 +174,8 @@ var SYS = {
 				thankYou: 'Thank you for your time, we hope it was worth it!',
 				exportByTime: 'Export time statistics',
 				exportByMessages: 'Export message statistics',
-				warning: 'Warning! Failed to process messages'
+				warning: 'Warning! Failed to process messages',
+				friendsOnly: 'Count only for friends'
 			}
 		}
 	},
@@ -197,7 +200,8 @@ var SYS = {
 var user = {
 	lang: SYS.LANGUAGES[langConfig.id] == undefined ? SYS.LANGUAGES[3].strings : SYS.LANGUAGES[langConfig.id].strings,
 	verbose: false,
-	kbytes: true
+	kbytes: true,
+	friendsOnly: false
 }
 
 
@@ -388,11 +392,12 @@ var ui = {
 		
 		var mbox = new MessageBox({title: user.lang.settingsText});
 		
-		mbox.addButton({label: user.lang.startButton, onClick: function() { mbox.hide(); messageProcessor.startProcessingMessages();}});
+		mbox.addButton({label: user.lang.startButton, onClick: function() { mbox.hide(); messageProcessor.start();}});
 		
 		//html = '<input type="checkbox" onclick="user.verbose=!user.verbose;" /> ' + user.lang.verbose;
 		html = '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_verbose" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_kbytes" /></div>';
+		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_friends_only" /></div>';
 		
 		mbox.content(html).show();
 		
@@ -406,6 +411,12 @@ var ui = {
 			label: user.lang.kbytes,
 			checked: 1,
 			onChange: function() { user.kbytes = !user.kbytes;}
+		});
+		
+		new Checkbox(ge('param_friends_only'), {
+			label: user.lang.friendsOnly,
+			checked: 0,
+			onChange: function() { user.friendsOnly = !user.friendsOnly;}
 		});
 	},
 	
@@ -575,11 +586,6 @@ var messageProcessor = {
 		ui.createProgressBar();
 		ui.updateProgressBar(0, this.incomingMessages, 0, this.outgoingMessages);
 		this.requestStartTime = (new Date()).getTime();
-		if(user.verbose) {
-			ui.addLoggerPane();
-			SYS.log('Started');
-		}
-		
 		
 		this.api.getMessages(0, 0, SYS.MESSAGES_PER_REQUEST, function(ao, rt) {messageProcessor.onMessagesLoaded(rt, 0)});
 	},
@@ -599,7 +605,7 @@ var messageProcessor = {
 		}
 		
 		if(this.incomingMessages != undefined && this.outgoingMessages != undefined) {
-			ui.requestSettings();
+			messageProcessor.startProcessingMessages();
 		}
 	},
 
@@ -608,10 +614,17 @@ var messageProcessor = {
 		this.api.getMessages(1, 0, 1, function(ao, rt) {messageProcessor.onMessageNumbersLoaded(rt, 1)});
 	},
 
-	start: function(api) {
-		this.api = api;
-		this.getNumberOfMessages();
+	start: function() {
+	
+		this.api = apiConnector;
+	
+		if(user.verbose) {
+			ui.addLoggerPane();
+			SYS.log('Started');
+		}
+
 		ui.setHeader(user.lang.loadingMessageNumbers);
+		this.getNumberOfMessages();
 	}
 }
 
@@ -656,7 +669,7 @@ var apiConnector = {
 			ui.setHeader(user.lang.authorized);
 			ui.clearContent();
 			
-			messageProcessor.start(this);
+			ui.requestSettings();
 			
 		} else {
 			//Waiting for the user to hit 'Allow'
@@ -674,6 +687,9 @@ var apiConnector = {
 		
 		toMd5 += 'api_id' + '=' + this.appId;
 		toMd5 += 'count=' + count;
+		if(user.friendsOnly) {
+			toMd5  += 'filters=4';
+		}
 		toMd5 += 'format=JSON';
 		toMd5 += 'method=messages.get';
 		toMd5 += 'offset=' + offset;
@@ -685,7 +701,8 @@ var apiConnector = {
 		var ajax = new Ajax();
 		ajax.onDone = onDone;
 		
-		ajax.post(this.API_ADDRESS, {
+		
+		params = {
 			api_id: apiConnector.appId,
 			count: count,
 			format: 'JSON',
@@ -696,7 +713,13 @@ var apiConnector = {
 			sid: apiConnector.sid,
 			sig: md5(toMd5),
 			v: this.API_VERSION
-		});
+		};
+		
+		if(user.friendsOnly) {
+			params.filters = 4;
+		}
+		
+		ajax.post(this.API_ADDRESS, params);
 	},
 	
 	doGetUserData: function(ids, onDone) {
