@@ -67,7 +67,7 @@ var SYS = {
 	VERSION: '4.0.0b',
 	APP_ID: 2045168,
 	LOGIN_SETTING: 0 + 4096,
-	DEBUG: false,
+	DEBUG: true,
 	MESSAGES_TO_PROCESS_IN_DEBUG_MODE: 200,
 	MESSAGES_PER_REQUEST: 100,
 	MSEC_BETWEEN_REQUESTS: 1000,
@@ -105,7 +105,9 @@ var SYS = {
 				exportByTime: 'Экспорт статистики по времени',
 				exportByMessages: 'Экспорт статистики по сообщениям',
 				warning: 'Внимание! Не удалось обработать сообщений',
-				friendsOnly: 'Учитывать только друзей'
+				friendsOnly: 'Учитывать только друзей',
+				withSelected: 'Выбранные',
+				export: 'экспортировать в заметку'
 			}
 		},
 		1: {
@@ -140,7 +142,9 @@ var SYS = {
 				exportByTime: 'Експорт статистики за часом',
 				exportByMessages: 'Експорт статистики за повідомленням',
 				warning: 'Увага! Не вдалося обробити повідомлень',
-				friendsOnly: 'Враховувати тільки друзів'
+				friendsOnly: 'Враховувати тільки друзів',
+				withSelected: 'Вибрані',
+				export: 'експортувати в замітку'
 			}
 		},
 		3: {
@@ -175,7 +179,9 @@ var SYS = {
 				exportByTime: 'Export time statistics',
 				exportByMessages: 'Export message statistics',
 				warning: 'Warning! Failed to process messages',
-				friendsOnly: 'Count only for friends'
+				friendsOnly: 'Count only for friends',
+				withSelected: 'Selected',
+				export: 'export to note'
 			}
 		}
 	},
@@ -253,13 +259,35 @@ var ui = {
 	
 	displayStats: function(stats, userData, sortBy) {
 	
+	this.clearContent();
+	
+		ge('sideBar').style.display = 'none';
+		ge('pageBody').style.width = '96%';
+		
+		var div = ce('div', {className: 'mailbox'});
+		
+		this.appendContentElement(div);
+		
+	
 		if(user.verbose) {
 			SYS.log('Processing complete, rendering results');
 		}
-	
-		var table = ce('table', {className: 'wikiTable'});
-		tableHTML = '<thead><th>#</th>' + 
-			'<th>' + user.lang.nameCol + '</th>' +
+		var cPane = ce('div', {className: 'bar clearFix actionBar', innerHTML: user.lang.thankYou});
+		var mActions = ce('div', { id: "message_actions", innerHTML: user.lang.withSelected + ': '}, {visibility: 'hidden'});
+		
+		mActions.innerHTML += '<a href="#" onclick="statCounter.exportToNote();">' + user.lang.export + '</a>';
+		
+		cPane.appendChild(mActions);
+		div.appendChild(cPane);
+		
+		var table = ce('table', {cellspacing: "0", cellpadding: "0", id: 'messages_rows'});
+		
+		div.appendChild(table);
+		
+		tableHTML = '<thead>' + '<th class="msg_check" onmouseover="checkOver(this, 0)" onmouseout="checkOut(this, 0)" onclick="checkChange(this, 0)"><div class=""></div><input type="hidden" id="post_check_0"></th>' + 
+			'<th style="text-align: center, width: 30px"> </th>' + 
+			'<th class="messagePicture"> </th>' + 
+			'<th class="messageFrom">' + user.lang.nameCol + '</th>' +
 			'<th onclick="javascript: ui.sort(\'tot\');" style="cursor: pointer">' + user.lang.numberOfMessagesCol + '</th>' + 
 			'<th onclick="javascript: ui.sort(\'out\');" style="cursor: pointer">' + user.lang.sentCol + '</th>' + 
 			'<th onclick="javascript: ui.sort(\'in\');" style="cursor: pointer">' + user.lang.receivedCol + '</th>';
@@ -344,23 +372,35 @@ var ui = {
 		for(var rank = 0; rank < sorted.length; rank ++) {
 			var uid = sorted[rank];
 			
-			data = stats[uid];
+			sdata = stats[uid];
 			udata = (userData[uid] == undefined ? {first_name: 'DELETED', last_name : 'DELETED'} : userData[uid]);
 			
-			var tr = ce('tr');
-			var tdR = ce('td', {innerHTML: rank + 1});
-			var tdN = ce('td', {innerHTML: '<a href="/id' + uid + '" target="_blank">' + udata.first_name + ' ' + udata.last_name + '</a>'});
-			var tdT = ce('td', {innerHTML: data.inM + data.outM});
-			var tdO = ce('td', {innerHTML: data.outM});
-			var tdI = ce('td', {innerHTML: data.inM});
+			var tr = ce('tr', {id: 'mess' + uid});
+			
+			var tdR = ce('td', {innerHTML: rank + 1}, {textAlign: 'center',  width: "30px"});
+			var tdS = ce('td', {innerHTML: '<div class=""></div><input type="hidden" id="post_check_' + uid + '">', className: 'msg_check'});
+			tdS.setAttribute('onmouseover', "checkOver(this, " + uid + ")");
+			tdS.setAttribute('onmouseout', "checkOut(this, " + uid + ")");
+			tdS.setAttribute('onclick', "checkChange(this, " + uid + ")");
+			//var cb = ce('input', {type: "hidden", id: "select_" + uid});
+			//tdS.appendChild(cb);
+			
+			var tdP = ce('td', {innerHTML: '<a href="/id' + uid + '" target="_blank"><img src="' + udata.photo + '" /></a>', className: 'messagePicture'});
+			var tdN = ce('td', {innerHTML: '<a href="/id' + uid + '" target="_blank">' + udata.first_name + ' ' + udata.last_name + '</a>', className: 'messageFrom'});
+			var tdT = ce('td', {innerHTML: sdata.inM + sdata.outM});
+			var tdO = ce('td', {innerHTML: sdata.outM});
+			var tdI = ce('td', {innerHTML: sdata.inM});
 			if(user.kbytes) {
-				var tdST = ce('td', {innerHTML: data.inSize + data.outSize});
-				var tdSO = ce('td', {innerHTML: data.outSize});
-				var tdSI = ce('td', {innerHTML: data.inSize});
+				var tdST = ce('td', {innerHTML: sdata.inSize + sdata.outSize});
+				var tdSO = ce('td', {innerHTML: sdata.outSize});
+				var tdSI = ce('td', {innerHTML: sdata.inSize});
 			}
-			var tdL = ce('td', {innerHTML: '<a href="mail.php?act=show&id=' + data.lastMessageId + '" target="_blank">' + formatDate(new Date(data.lastMessageDate * 1000)) + '</a>'});
+			var tdL = ce('td', {innerHTML: '<a href="mail.php?act=show&id=' + sdata.lastMessageId + '" target="_blank">' + formatDate(new Date(sdata.lastMessageDate * 1000)) + '</a>'});
 
+			tr.appendChild(tdS);
 			tr.appendChild(tdR);
+			
+			tr.appendChild(tdP);
 			tr.appendChild(tdN);
 			tr.appendChild(tdT);
 			tr.appendChild(tdO);
@@ -373,11 +413,6 @@ var ui = {
 			tr.appendChild(tdL);
 			tbody.appendChild(tr);
 		}
-		
-		var div = ce('div');
-		div.appendChild(table);
-		this.clearContent();
-		this.appendContentElement(div);
 	},
 	
 	sort: function(sortBy) {
@@ -464,6 +499,10 @@ var statCounter = {
 			userStats.outM ++;
 			userStats.outSize += message.body.length;
 		}
+	}
+	
+	exportToNote: function() {
+		
 	}
 };
 
@@ -729,6 +768,7 @@ var apiConnector = {
 		var toMd5 = user.uid;
 		
 		toMd5 += 'api_id' + '=' + this.appId;
+		toMd5 += 'fields=photo';
 		toMd5 += 'format=JSON';
 		toMd5 += 'method=getProfiles';
 		
@@ -743,6 +783,7 @@ var apiConnector = {
 		
 		ajax.post(this.API_ADDRESS, {
 			api_id: apiConnector.appId,
+			fields: 'photo',
 			format: 'JSON',
 			method: 'getProfiles',
 			sid: apiConnector.sid,
