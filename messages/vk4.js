@@ -22,6 +22,25 @@ var splitArrayToSubArrays = function(arr, maxPieceSize) {
 	return result;
 }
 
+var formatDate = function(date) {
+	var year = date.getFullYear();
+	var month = date.getMonth();
+	if(month < 10) month = '0' + month;
+	var day = date.getDay();
+	if(day < 10) day = '0' + day;
+	
+	var hours = date.getHours();
+	if(hours < 10) hours = '0' + hours;
+	
+	var minutes = date.getMinutes();
+	if(minutes < 10) minutes = '0' + minutes;
+	
+	var seconds = date.getSeconds();
+	if(seconds < 10) seconds = '0' + seconds;
+	
+	return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+}
+
 
 //Here goest the google code closure-compressed md5 calculating function
 var rotateLeft=function(a,b){return a<<b|a>>>32-b},addUnsigned=function(a,b){var g,h,i,j,c;i=a&2147483648;j=b&2147483648;g=a&1073741824;h=b&1073741824;c=(a&1073741823)+(b&1073741823);if(g&h)return c^2147483648^i^j;return g|h?c&1073741824?c^3221225472^i^j:c^1073741824^i^j:c^i^j},F=function(a,b,g){return a&b|~a&g},G=function(a,b,g){return a&g|b&~g},H=function(a,b,g){return a^b^g},I=function(a,b,g){return b^(a|~g)},FF=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(F(b,g,h),i),c));return addUnsigned(rotateLeft(a,
@@ -40,7 +59,7 @@ var SYS = {
 	APP_ID: 2045168,
 	LOGIN_SETTING: 0 + 4096,
 	DEBUG: false,
-	MESSAGES_TO_PROCESS_IN_DEBUG_MODE: 100,
+	MESSAGES_TO_PROCESS_IN_DEBUG_MODE: 200,
 	MESSAGES_PER_REQUEST: 100,
 	MSEC_BETWEEN_REQUESTS: 1000,
 	MAX_USERS_PER_REQUEST: 1000,
@@ -54,9 +73,13 @@ var SYS = {
 				fatal: 'Критическая ошибка. Пожалуйста, сообщите приведённые ниже данные разработчику.',
 				appName: 'Статистика личной переписки',
 				nameCol: 'Имя',
+				gettingNames: 'Загрузка имён пользователей',
 				numberOfMessagesCol: 'Всего сообщений',
 				sentCol: 'Вы отправили',
 				receivedCol: 'Вы получили',
+				symbolsCol: 'Всего символов',
+				sentSymbolsCol: 'Вы отправили символов',
+				receivedSymbolsCol: 'Вы получили символов',
 				lastMsgCol: 'Последнее сообщение',
 				processingMessages: 'Обработка сообщений',
 				done: 'Обработка завершена',
@@ -81,6 +104,10 @@ var SYS = {
 				appName: 'Статистика приватні переписки',
 				nameCol: "Ім'я",
 				numberOfMessagesCol: 'Усього повідомлень',
+				gettingNames: 'Загрузка имён пользователей',
+				symbolsCol: 'Всего символов',
+				sentSymbolsCol: 'Вы отправили символов',
+				receivedSymbolsCol: 'Вы получили символов',
 				sentCol: 'Ви відправили',
 				receivedCol: 'Ви одержали',
 				lastMsgCol: 'Останнє повідомлення',
@@ -107,8 +134,12 @@ var SYS = {
 				appName: 'Private messages statistics',
 				nameCol: 'Name',
 				numberOfMessagesCol: 'Number of messages',
+				gettingNames: 'Loading user names',
 				sentCol: 'Sent',
 				receivedCol: 'Received',
+				symbolsCol: 'Total symbols',
+				sentSymbolsCol: 'Sent symbols',
+				receivedSymbolsCol: 'ReceivedSymbols',
 				lastMsgCol: 'Last Message',
 				messagesProcessed: 'Messages processed',
 				processingMessages: 'Processing messages',
@@ -138,6 +169,7 @@ var SYS = {
 var user = {
 	lang: SYS.LANGUAGES[langConfig.id] == undefined ? SYS.LANGUAGES[3].strings : SYS.LANGUAGES[langConfig.id].strings
 }
+
 
 var ui = {
 	setHeader: function(string) {
@@ -185,29 +217,109 @@ var ui = {
 			user.lang.outgoing + ': ' + processedOutgoing + '/' + totalOutgoing;
 	},
 	
-	displayStats: function(stats, userData) {
+	displayStats: function(stats, userData, sortBy) {
 		var table = ce('table', {className: 'wikiTable'});
-		table.innerHTML += '<thead><th></th><th>' + user.lang.nameCol + '</th><th>' + user.lang.numberOfMessagesCol + '</th><th>' + user.lang.sentCol + '</th><th>' + user.lang.receivedCol + '</th><th>' + user.lang.lastMsgCol + '</th></thead>';
+		table.innerHTML += '<thead><th>#</th>' + 
+			'<th>' + user.lang.nameCol + '</th>' +
+			'<th onclick="javascript: ui.sort(\'tot\');" style="cursor: pointer">' + user.lang.numberOfMessagesCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'out\');" style="cursor: pointer">' + user.lang.sentCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'in\');" style="cursor: pointer">' + user.lang.receivedCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'tot-size\');" style="cursor: pointer">' + user.lang.symbolsCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'out-size\');" style="cursor: pointer">' + user.lang.sentSymbolsCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'in-size\');" style="cursor: pointer">' + user.lang.receivedSymbolsCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'date\');" style="cursor: pointer">' + user.lang.lastMsgCol + '</th>' + 
+			'</thead>';
 
 		var tbody = ce('tbody');
 		table.appendChild(tbody);
 		
-		var rank = 1;
-		for (var uid in stats) {
+		var sorted = getKeys(stats);
+		
+		
+		//FIXME: write a simple and generic way of sorting by fields
+		if(sortBy == 'tot-size') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.inSize + b.outSize - (a.inSize + a.outSize);
+			});
+		}
+		
+		if(sortBy == 'in-size') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.inSize - a.inSize;
+			});
+		}
+		
+		if(sortBy == 'out-size') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.outSize - a.outSize;
+			});
+		}
+		
+		if(sortBy == 'tot') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.in + b.out - (a.in + a.out);
+			});
+		}
+		
+		if(sortBy == 'in') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.in - a.in;
+			});
+		}
+		
+		if(sortBy == 'out') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.out - a.out;
+			});
+		}
+		
+		if(sortBy == 'date') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.lastMessageDate - a.lastMessageDate;
+			});
+		}
+		
+		
+		
+		for(var rank = 0; rank < sorted.length; rank ++) {
+			var uid = sorted[rank];
+			
 			data = stats[uid];
+			udata = (userData[uid] == undefined ? {first_name: 'DELETED', last_name : 'DELETED'} : userData[uid]);
+			
 			var tr = ce('tr');
-			var tdR = ce('td', {innerHTML: rank ++});
-			var tdN = ce('td', {innerHTML: '<a href="/id' + uid + '">' + userData[uid].first_name + ' ' + userData[uid].last_name + '</a>'});
+			var tdR = ce('td', {innerHTML: rank + 1});
+			var tdN = ce('td', {innerHTML: '<a href="/id' + uid + '">' + udata.first_name + ' ' + udata.last_name + '</a>'});
 			var tdT = ce('td', {innerHTML: data.in + data.out});
-			var tdO = ce('td', {innerHTML: data.in});
-			var tdI = ce('td', {innerHTML: data.out});
-			var tdL = ce('td', {innerHTML: '<a href="mail.php?act=show&id=' + data.lastMessageId + '">' + data.lastMessageDate + '</a>'});
+			var tdO = ce('td', {innerHTML: data.out});
+			var tdI = ce('td', {innerHTML: data.in});
+			var tdST = ce('td', {innerHTML: data.inSize + data.outSize});
+			var tdSO = ce('td', {innerHTML: data.outSize});
+			var tdSI = ce('td', {innerHTML: data.inSize});
+			var tdL = ce('td', {innerHTML: '<a href="mail.php?act=show&id=' + data.lastMessageId + '">' + formatDate(new Date(data.lastMessageDate * 1000)) + '</a>'});
 
 			tr.appendChild(tdR);
 			tr.appendChild(tdN);
 			tr.appendChild(tdT);
 			tr.appendChild(tdO);
 			tr.appendChild(tdI);
+			tr.appendChild(tdST);
+			tr.appendChild(tdSO);
+			tr.appendChild(tdSI);
 			tr.appendChild(tdL);
 			tbody.appendChild(tr);
 		}
@@ -216,8 +328,13 @@ var ui = {
 		div.appendChild(table);
 		this.clearContent();
 		this.appendContentElement(div);
+	},
+	
+	sort: function(sortBy) {
+		this.displayStats(statCounter.statByUser, statCounter.userData, sortBy);
 	}
 };
+
 
 var statCounter = {
 	statByUser: {},
@@ -228,7 +345,9 @@ var statCounter = {
 			in: 0,
 			out: 0,
 			lastMessageDate: message.date,
-			lastMessageId: message.mid
+			lastMessageId: message.mid,
+			inSize: 0,
+			outSize: 0
 			// TODO: add words distribution
 		};
 		this.statByUser[message.uid] = newStats;
@@ -242,11 +361,13 @@ var statCounter = {
 		}
 		if(!message.out) {
 			userStats.in ++;
+			userStats.inSize += message.body.length;
 		} else {
 			userStats.out ++;
+			userStats.outSize += message.body.length;
 		}
 	}
-}
+};
 
 var messageProcessor = {
 
@@ -267,15 +388,17 @@ var messageProcessor = {
 			statCounter.userData[parsedResponse[i].uid] = parsedResponse[i];
 		}
 		
-		if(nKeys(statCounter.userData) == nKeys(statCounter.statByUser)) {
+		if(--(this.pendingUserDataRequests) <= 0) {
 			ui.setHeader(user.lang.done + '!');
-			ui.displayStats(statCounter.statByUser, statCounter.userData);
+			ui.displayStats(statCounter.statByUser, statCounter.userData, 'tot-size');
 		}
 		
 	},
 	
 	onAllMessagesLoaded: function() {
 		ui.updateProgressBar(this.processedIncomingMessages, this.incomingMessages, this.processedOutgoingMessages, this.outgoingMessages);
+		
+		ui.setHeader(user.lang.gettingNames + '...');
 		
 		this.api.getUserNames(getKeys(statCounter.statByUser),function(ao,rt) {messageProcessor.onUserProfilesLoaded(rt);});
 	},
@@ -484,6 +607,7 @@ var apiConnector = {
 	getUserNames: function(ids, onDone) {
 		ids = splitArrayToSubArrays(ids, SYS.MAX_USERS_PER_REQUEST);
 		this.onDone = onDone;
+		messageProcessor.pendingUserDataRequests = ids.length;
 		for(var i = 0; i < ids.length; i ++) {
 			if(i == 0) {
 				this.doGetUserData(ids[i], onDone);
