@@ -41,6 +41,10 @@ var formatDate = function(date) {
 	return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
 }
 
+var insertAfter = function ( referenceNode, newNode ){
+	referenceNode.parentNode.insertBefore( newNode, referenceNode.nextSibling );
+}
+
 //because when inserted into address bar, expressions with percentage sign tend to get converted to characters
 var mod = function(first, second) {
 	return first % second;
@@ -78,6 +82,10 @@ var SYS = {
 				fatal: 'Критическая ошибка. Пожалуйста, сообщите приведённые ниже данные разработчику.',
 				appName: 'Статистика личной переписки',
 				nameCol: 'Имя',
+				kbytes: 'Учитывать размер сообщений',
+				settingsText: 'Выберите желаемые параметры',
+				startButton: 'Поехали!',
+				verbose: 'Логгировать все действия',
 				gettingNames: 'Загрузка имён пользователей',
 				numberOfMessagesCol: 'Всего сообщений',
 				sentCol: 'Вы отправили',
@@ -105,10 +113,14 @@ var SYS = {
 				authorizing: 'Авторизация',
 				authorized: 'Авторизация завершена',
 				loadingMessageNumbers: 'Определение числа сообщений',
+				settingsText: 'Выберите желаемые параметры',
+				startButton: 'Поехали!',
+				verbose: 'Логгировать все действия',
 				fatal: 'Критическая ошибка. Пожалуйста, сообщите приведённые ниже данные разработчику.',
 				appName: 'Статистика приватні переписки',
 				nameCol: "Ім'я",
 				numberOfMessagesCol: 'Усього повідомлень',
+				kbytes: 'Учитывать размер сообщений',
 				gettingNames: 'Загрузка имён пользователей',
 				symbolsCol: 'Всего символов',
 				sentSymbolsCol: 'Вы отправили символов',
@@ -134,9 +146,13 @@ var SYS = {
 			strings: {
 				authorizing: 'Authorizing',
 				authorized: 'Authorization complete',
-				loadingMessageNumbers: 'Getting message numbers...',
+				loadingMessageNumbers: 'Getting message numbers',
 				fatal: 'Fatal error. Please, send the info below to the developers',
 				appName: 'Private messages statistics',
+				settingsText: 'Set your desired parameters',
+				startButton: 'Start',
+				verbose: 'Verbose mode',
+				kbytes: 'Count message sizes as well',
 				nameCol: 'Name',
 				numberOfMessagesCol: 'Number of messages',
 				gettingNames: 'Loading user names',
@@ -168,11 +184,18 @@ var SYS = {
 		t.innerHTML = obj;
 		ui.appendContentElement(t);
 		throw obj;
+	},
+	
+	log: function(str) {
+		str = formatDate(new Date()) + ': ' + str;
+		ge('loggerPane').innerHTML += str + "\n";
 	}
 }
 
 var user = {
-	lang: SYS.LANGUAGES[langConfig.id] == undefined ? SYS.LANGUAGES[3].strings : SYS.LANGUAGES[langConfig.id].strings
+	lang: SYS.LANGUAGES[langConfig.id] == undefined ? SYS.LANGUAGES[3].strings : SYS.LANGUAGES[langConfig.id].strings,
+	verbose: false,
+	kbytes: true
 }
 
 
@@ -223,15 +246,25 @@ var ui = {
 	},
 	
 	displayStats: function(stats, userData, sortBy) {
+	
+		if(user.verbose) {
+			SYS.log('Processing complete, rendering results');
+		}
+	
 		var table = ce('table', {className: 'wikiTable'});
 		table.innerHTML += '<thead><th>#</th>' + 
 			'<th>' + user.lang.nameCol + '</th>' +
 			'<th onclick="javascript: ui.sort(\'tot\');" style="cursor: pointer">' + user.lang.numberOfMessagesCol + '</th>' + 
 			'<th onclick="javascript: ui.sort(\'out\');" style="cursor: pointer">' + user.lang.sentCol + '</th>' + 
-			'<th onclick="javascript: ui.sort(\'in\');" style="cursor: pointer">' + user.lang.receivedCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'in\');" style="cursor: pointer">' + user.lang.receivedCol + '</th>';
+		if(user.kbytes) {
+			table.innerHTML +=
 			'<th onclick="javascript: ui.sort(\'tot-size\');" style="cursor: pointer">' + user.lang.symbolsCol + '</th>' + 
 			'<th onclick="javascript: ui.sort(\'out-size\');" style="cursor: pointer">' + user.lang.sentSymbolsCol + '</th>' + 
-			'<th onclick="javascript: ui.sort(\'in-size\');" style="cursor: pointer">' + user.lang.receivedSymbolsCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'in-size\');" style="cursor: pointer">' + user.lang.receivedSymbolsCol + '</th>';
+		}
+		
+		table.innerHTML +=
 			'<th onclick="javascript: ui.sort(\'date\');" style="cursor: pointer">' + user.lang.lastMsgCol + '</th>' + 
 			'</thead>';
 
@@ -308,23 +341,27 @@ var ui = {
 			
 			var tr = ce('tr');
 			var tdR = ce('td', {innerHTML: rank + 1});
-			var tdN = ce('td', {innerHTML: '<a href="/id' + uid + '">' + udata.first_name + ' ' + udata.last_name + '</a>'});
+			var tdN = ce('td', {innerHTML: '<a href="/id' + uid + '" target="_blank">' + udata.first_name + ' ' + udata.last_name + '</a>'});
 			var tdT = ce('td', {innerHTML: data.inM + data.outM});
 			var tdO = ce('td', {innerHTML: data.outM});
 			var tdI = ce('td', {innerHTML: data.inM});
-			var tdST = ce('td', {innerHTML: data.inSize + data.outSize});
-			var tdSO = ce('td', {innerHTML: data.outSize});
-			var tdSI = ce('td', {innerHTML: data.inSize});
-			var tdL = ce('td', {innerHTML: '<a href="mail.php?act=show&id=' + data.lastMessageId + '">' + formatDate(new Date(data.lastMessageDate * 1000)) + '</a>'});
+			if(user.kbytes) {
+				var tdST = ce('td', {innerHTML: data.inSize + data.outSize});
+				var tdSO = ce('td', {innerHTML: data.outSize});
+				var tdSI = ce('td', {innerHTML: data.inSize});
+			}
+			var tdL = ce('td', {innerHTML: '<a href="mail.php?act=show&id=' + data.lastMessageId + '" target="_blank">' + formatDate(new Date(data.lastMessageDate * 1000)) + '</a>'});
 
 			tr.appendChild(tdR);
 			tr.appendChild(tdN);
 			tr.appendChild(tdT);
 			tr.appendChild(tdO);
 			tr.appendChild(tdI);
-			tr.appendChild(tdST);
-			tr.appendChild(tdSO);
-			tr.appendChild(tdSI);
+			if(user.kbytes) {
+				tr.appendChild(tdST);
+				tr.appendChild(tdSO);
+				tr.appendChild(tdSI);
+			}
 			tr.appendChild(tdL);
 			tbody.appendChild(tr);
 		}
@@ -337,6 +374,47 @@ var ui = {
 	
 	sort: function(sortBy) {
 		this.displayStats(statCounter.statByUser, statCounter.userData, sortBy);
+	},
+	
+	requestSettings: function() {
+	
+		this.setHeader(user.lang.appName + ' ' + SYS.VERSION);
+		ui.clearContent();
+		this.removeLoggerPane();
+		
+		var mbox = new MessageBox({title: user.lang.settingsText});
+		
+		mbox.addButton({label: user.lang.startButton, onClick: function() { mbox.hide(); messageProcessor.startProcessingMessages();}});
+		
+		//html = '<input type="checkbox" onclick="user.verbose=!user.verbose;" /> ' + user.lang.verbose;
+		html = '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_verbose" /></div>';
+		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_kbytes" /></div>';
+		
+		mbox.content(html).show();
+		
+		new Checkbox(ge('param_verbose'), {
+			label: user.lang.verbose,
+			checked: 0,
+			onChange: function() {user.verbose=!user.verbose;}
+		});
+		
+		new Checkbox(ge('param_kbytes'), {
+			label: user.lang.kbytes,
+			checked: 1,
+			onChange: function() { user.kbytes = !user.kbytes;}
+		});
+	},
+	
+	addLoggerPane: function(){
+		var t = ce('textarea', {'cols': 80, 'rows': 20, id: 'loggerPane'}, {fontFamily: 'Courier new'});
+		insertAfter(ge('content'), t);
+	},
+	
+	removeLoggerPane: function() {
+		var a = ge('loggerPane');
+		if( a != undefined) {
+			a.parentNode.removeChild(a);
+		}
 	}
 };
 
@@ -393,7 +471,13 @@ var messageProcessor = {
 			statCounter.userData[parsedResponse[i].uid] = parsedResponse[i];
 		}
 		
-		if(--(this.pendingUserDataRequests) <= 0) {
+		this.pendingUserDataRequests--;
+		
+		if(user.verbose) {
+			SYS.log('Got user profile data, ' + (this.pendingUserDataRequest) + ' goes remaining');
+		}
+		
+		if(this.pendingUserDataRequests <= 0) {
 			ui.setHeader(user.lang.done + '!');
 			ui.displayStats(statCounter.statByUser, statCounter.userData, 'tot-size');
 		}
@@ -404,6 +488,10 @@ var messageProcessor = {
 		ui.updateProgressBar(this.processedIncomingMessages, this.incomingMessages, this.processedOutgoingMessages, this.outgoingMessages);
 		
 		ui.setHeader(user.lang.gettingNames + '...');
+		
+		if(user.verbose) {
+			SYS.log('Got all messages, getting user names');
+		}
 		
 		this.api.getUserNames(getKeys(statCounter.statByUser),function(ao,rt) {messageProcessor.onUserProfilesLoaded(rt);});
 	},
@@ -419,6 +507,10 @@ var messageProcessor = {
 		parsedResponse = parsedResponse.response;
 		var currentMessages = parsedResponse[0];
 		
+		if(user.verbose) {
+			SYS.log('Got ' + (parsedResponse.length - 1) + ' messages');
+		}
+		
 		for(var i = 1; i < parsedResponse.length; i ++) {
 			statCounter.processSingleMessage(parsedResponse[i]);
 		}
@@ -427,6 +519,11 @@ var messageProcessor = {
 		if(!out) {
 			this.processedIncomingMessages += parsedResponse.length - 1;
 			offset = this.processedIncomingMessages + (currentMessages - this.incomingMessages);
+			
+			if(currentMessages != this.incomingMessages && user.verbose) {
+				SYS.log('By the way, the user has received ' + (currentMessages - this.incomingMessages) + 'after the script was started');
+			}
+			
 			if(offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
 				out = 1;
 				offset = 0;
@@ -434,6 +531,11 @@ var messageProcessor = {
 		} else {
 			this.processedOutgoingMessages += parsedResponse.length - 1;
 			offset = this.processedOutgoingMessages + (currentMessages - this.outgoingMessages);
+			
+			if(currentMessages != this.outgoingMessages && user.verbose) {
+				SYS.log('By the way, the user has sent ' + (currentMessages - this.outgoingMessages) + 'after the script was started');
+			}
+			
 			if(offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
 				this.onAllMessagesLoaded();
 				return;
@@ -443,38 +545,57 @@ var messageProcessor = {
 		ui.updateProgressBar(this.processedIncomingMessages, this.incomingMessages, this.processedOutgoingMessages, this.outgoingMessages);
 		
 		var elapsedTime = (new Date()).getTime() - this.requestStartTime;
+		
+		if(user.verbose) {
+			SYS.log('Elapsed time:  ' + elapsedTime + ' ms');
+		}
+		
 		if(elapsedTime >= SYS.MSEC_BETWEEN_REQUESTS) {
+			if(user.verbose) {
+				SYS.log('Starting new request...');
+			}
 			this.requestStartTime = (new Date()).getTime();
 			this.api.getMessages(out, offset, SYS.MESSAGES_PER_REQUEST, function(ao, rt) {messageProcessor.onMessagesLoaded(rt, out)});
 		} else {
 			this.out = out;
 			this.offset = offset;
+			if(user.verbose) {
+				SYS.log('Scheduling new request in ' + (SYS.MSEC_BETWEEN_REQUESTS - elapsedTime) + 'ms');
+			}
 			setTimeout("messageProcessor.requestStartTime = (new Date()).getTime(); messageProcessor.api.getMessages(messageProcessor.out, messageProcessor.offset, SYS.MESSAGES_PER_REQUEST, function(ao, rt) {messageProcessor.onMessagesLoaded(rt, messageProcessor.out)});", SYS.MSEC_BETWEEN_REQUESTS - elapsedTime);
 		}
 	},
 	
 	startProcessingMessages: function() {
+		ui.setHeader(user.lang.processingMessages + '...');
 		ui.createProgressBar();
 		ui.updateProgressBar(0, this.incomingMessages, 0, this.outgoingMessages);
 		this.requestStartTime = (new Date()).getTime();
+		if(user.verbose) {
+			ui.addLoggerPane();
+			SYS.log('Started');
+		}
+		
+		
 		this.api.getMessages(0, 0, SYS.MESSAGES_PER_REQUEST, function(ao, rt) {messageProcessor.onMessagesLoaded(rt, 0)});
 	},
 
 	onMessageNumbersLoaded: function(response, out) {
-		try {
-			var parsedResponse = eval('(' + response + ')').response;
-			if(!out) {
-				this.incomingMessages = parsedResponse[0];
-			} else {
-				this.outgoingMessages = parsedResponse[0];
-			}
-			
-			if(this.incomingMessages != undefined && this.outgoingMessages != undefined) {
-				ui.setHeader(user.lang.processingMessages + '...');
-				this.startProcessingMessages();
-			}
-		} catch(e) {
+		var parsedResponse = eval('(' + response + ')');
+		
+		if(parsedResponse.response == undefined) {
 			SYS.fatal(response);
+		}
+		
+		parsedResponse = parsedResponse.response;
+		if(!out) {
+			this.incomingMessages = parsedResponse[0];
+		} else {
+			this.outgoingMessages = parsedResponse[0];
+		}
+		
+		if(this.incomingMessages != undefined && this.outgoingMessages != undefined) {
+			ui.requestSettings();
 		}
 	},
 
@@ -493,6 +614,7 @@ var messageProcessor = {
 var apiConnector = {
 
 	API_ADDRESS: '/api.php',
+	API_VERSION: '3.0',
 	LOGON_FAIL_STRING: 'login_fail',
 	LOGON_SUCCESS_STRING: 'login_success',
 
@@ -515,7 +637,6 @@ var apiConnector = {
 	
 	onLogonFrameLoaded: function(frameLocation) {
 		var location = unescape(frameLocation);
-		//alert(location);
 		if(location.indexOf(this.LOGON_FAIL_STRING) != -1) {
 			SYS.fatal('failed to log on: ' + location);
 		}
@@ -532,81 +653,77 @@ var apiConnector = {
 			ui.clearContent();
 			
 			messageProcessor.start(this);
+			
 		} else {
-			//...
+			//Waiting for the user to hit 'Allow'
 		}
 	},
 	
 	getMessages: function(out, offset, count, onDone) {
-		var request = this.API_ADDRESS + '?';
+		if(user.verbose) {
+			SYS.log('getMessages invoked: out=' + out + "; offset=" + offset);
+		}
+
 		var toMd5 = user.uid;
 		
-		request += 'api_id' + '=' + this.appId + '&';
+		var previewLength = user.kbytes ? 0 : 1;
+		
 		toMd5 += 'api_id' + '=' + this.appId;
-		
-		request += 'count=' + count + '&';
 		toMd5 += 'count=' + count;
-		
-		request += 'format=JSON&';
 		toMd5 += 'format=JSON';
-		
-		request += 'method=messages.get&';
 		toMd5 += 'method=messages.get';
-		
-		request += 'offset=' + offset + '&';
 		toMd5 += 'offset=' + offset;
-		
-		request += 'out=' + out + '&';
 		toMd5 += 'out=' + out;
-		
-		request += 'preview_length=0&';
-		toMd5 += 'preview_length=0';
-		
-		request += 'sid=' + this.sid + '&';
-		
-		toMd5 += 'v=3.0';
+		toMd5 += 'preview_length=' + previewLength;
+		toMd5 += 'v=' + this.API_VERSION,
 		toMd5 += this.secret;
 		
-		request += 'sig=' + md5(toMd5) + '&v=3.0';
+		var ajax = new Ajax();
+		ajax.onDone = onDone;
 		
-		Ajax.Get({
-			url: request,
-			onDone: onDone
+		ajax.post(this.API_ADDRESS, {
+			api_id: apiConnector.appId,
+			count: count,
+			format: 'JSON',
+			method: 'messages.get',
+			offset: offset,
+			out:out,
+			preview_length: previewLength,
+			sid: apiConnector.sid,
+			sig: md5(toMd5),
+			v: this.API_VERSION
 		});
 	},
 	
 	doGetUserData: function(ids, onDone) {
-		var request = this.API_ADDRESS + '?';
+		if(user.verbose) {
+			SYS.log('doGetUserData invoked: ids=' + ids);
+		}
 		var toMd5 = user.uid;
 		
-		request += 'api_id' + '=' + this.appId + '&';
 		toMd5 += 'api_id' + '=' + this.appId;
-		
-		//request += 'method=getProfiles&';
-		//toMd5 += 'method=getProfiles';
-		
-		request += 'format=JSON&';
 		toMd5 += 'format=JSON';
-		
-		request += 'method=getProfiles&';
 		toMd5 += 'method=getProfiles';
 		
-		request += 'sid=' + this.sid + '&';
-		
 		var uids = ids.join(',');
-		
-		request += 'uids=' + uids + '&';
 		toMd5 += 'uids=' + uids;
 		
-		toMd5 += 'v=3.0';
+		toMd5 += 'v=' + this.API_VERSION;
 		toMd5 += this.secret;
 		
-		request += 'sig=' + md5(toMd5) + '&v=3.0';
+		var ajax = new Ajax();
+		ajax.onDone = onDone;
 		
-		Ajax.Get({
-			url: request,
-			onDone: onDone
+		ajax.post(this.API_ADDRESS, {
+			api_id: apiConnector.appId,
+			format: 'JSON',
+			method: 'getProfiles',
+			sid: apiConnector.sid,
+			sig: md5(toMd5),
+			uids: uids,
+			v: this.API_VERSION
 		});
+		
 	},
 	
 	getUserNames: function(ids, onDone) {
@@ -622,5 +739,6 @@ var apiConnector = {
 		}
 	}
 }
+
 
 apiConnector.logon(SYS.APP_ID, SYS.LOGIN_SETTING);
