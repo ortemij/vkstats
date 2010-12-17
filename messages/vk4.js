@@ -110,29 +110,29 @@ var SYS = {
 		1: {
 			name: 'ukrainian',
 			strings: {
-				authorizing: 'Авторизация',
-				authorized: 'Авторизация завершена',
-				loadingMessageNumbers: 'Определение числа сообщений',
-				settingsText: 'Выберите желаемые параметры',
-				startButton: 'Поехали!',
-				verbose: 'Логгировать все действия',
-				fatal: 'Критическая ошибка. Пожалуйста, сообщите приведённые ниже данные разработчику.',
+				authorizing: 'Авторизація',
+				authorized: 'Авторизація завершена',
+				loadingMessageNumbers: 'Визначення кількості повідомлень',
+				settingsText: 'Виберіть бажані параметри',
+				startButton: 'Поїхали!',
+				verbose: 'Логгіровать всі дії',
+				fatal: 'Критична помилка. Будь ласка, повідомте наведені нижче дані розробнику.',
 				appName: 'Статистика приватні переписки',
 				nameCol: "Ім'я",
 				numberOfMessagesCol: 'Усього повідомлень',
-				kbytes: 'Учитывать размер сообщений',
-				gettingNames: 'Загрузка имён пользователей',
-				symbolsCol: 'Всего символов',
-				sentSymbolsCol: 'Вы отправили символов',
-				receivedSymbolsCol: 'Вы получили символов',
+				kbytes: 'Враховувати розмір повідомлень',
+				gettingNames: 'Завантаження імен користувачів',
+				symbolsCol: 'Всього символів',
+				sentSymbolsCol: 'Ви відправили символів',
+				receivedSymbolsCol: 'Ви отримали символів',
 				sentCol: 'Ви відправили',
 				receivedCol: 'Ви одержали',
 				lastMsgCol: 'Останнє повідомлення',
 				messagesProcessed: 'Оброблене повідомлень',
-				processingMessages: 'Обработка сообщений',
-				done: 'Обработка завершена',
-				incoming: 'входящих',
-				outgoing: 'исходящих',
+				processingMessages: 'Обробка повідомлень',
+				done: 'Обробка завершена',
+				incoming: 'входять',
+				outgoing: 'вихідних',
 				dayWithMostMessages: 'Найбільше повідомлень було',
 				timeWithMostMessages: 'Найбільше повідомлень',
 				thankYou: 'Спасибі, що дочекалися, сподіваємося, воно того коштувало!',
@@ -188,7 +188,9 @@ var SYS = {
 	
 	log: function(str) {
 		str = formatDate(new Date()) + ': ' + str;
-		ge('loggerPane').innerHTML += str + "\n";
+		var pane = ge('loggerPane');
+		pane.innerHTML += str + "\n";
+		pane.scrollTop = pane.scrollHeight;
 	}
 }
 
@@ -252,21 +254,23 @@ var ui = {
 		}
 	
 		var table = ce('table', {className: 'wikiTable'});
-		table.innerHTML += '<thead><th>#</th>' + 
+		tableHTML = '<thead><th>#</th>' + 
 			'<th>' + user.lang.nameCol + '</th>' +
 			'<th onclick="javascript: ui.sort(\'tot\');" style="cursor: pointer">' + user.lang.numberOfMessagesCol + '</th>' + 
 			'<th onclick="javascript: ui.sort(\'out\');" style="cursor: pointer">' + user.lang.sentCol + '</th>' + 
 			'<th onclick="javascript: ui.sort(\'in\');" style="cursor: pointer">' + user.lang.receivedCol + '</th>';
 		if(user.kbytes) {
-			table.innerHTML +=
+			tableHTML +=
 			'<th onclick="javascript: ui.sort(\'tot-size\');" style="cursor: pointer">' + user.lang.symbolsCol + '</th>' + 
 			'<th onclick="javascript: ui.sort(\'out-size\');" style="cursor: pointer">' + user.lang.sentSymbolsCol + '</th>' + 
 			'<th onclick="javascript: ui.sort(\'in-size\');" style="cursor: pointer">' + user.lang.receivedSymbolsCol + '</th>';
 		}
 		
-		table.innerHTML +=
+		tableHTML +=
 			'<th onclick="javascript: ui.sort(\'date\');" style="cursor: pointer">' + user.lang.lastMsgCol + '</th>' + 
 			'</thead>';
+			
+		table.innerHTML  = tableHTML;
 
 		var tbody = ce('tbody');
 		table.appendChild(tbody);
@@ -479,7 +483,7 @@ var messageProcessor = {
 		
 		if(this.pendingUserDataRequests <= 0) {
 			ui.setHeader(user.lang.done + '!');
-			ui.displayStats(statCounter.statByUser, statCounter.userData, 'tot-size');
+			ui.displayStats(statCounter.statByUser, statCounter.userData, user.kbytes ? 'tot-size' : 'tot');
 		}
 		
 	},
@@ -521,7 +525,7 @@ var messageProcessor = {
 			offset = this.processedIncomingMessages + (currentMessages - this.incomingMessages);
 			
 			if(currentMessages != this.incomingMessages && user.verbose) {
-				SYS.log('By the way, the user has received ' + (currentMessages - this.incomingMessages) + 'after the script was started');
+				SYS.log('By the way, the user has received ' + (currentMessages - this.incomingMessages) + ' message(s) after the script was started');
 			}
 			
 			if(offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
@@ -533,7 +537,7 @@ var messageProcessor = {
 			offset = this.processedOutgoingMessages + (currentMessages - this.outgoingMessages);
 			
 			if(currentMessages != this.outgoingMessages && user.verbose) {
-				SYS.log('By the way, the user has sent ' + (currentMessages - this.outgoingMessages) + 'after the script was started');
+				SYS.log('By the way, the user has sent ' + (currentMessages - this.outgoingMessages) + ' message(s) after the script was started');
 			}
 			
 			if(offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
