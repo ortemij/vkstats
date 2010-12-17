@@ -41,11 +41,16 @@ var formatDate = function(date) {
 	return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
 }
 
+//because when inserted into address bar, expressions with percentage sign tend to get converted to characters
+var mod = function(first, second) {
+	return first % second;
+}
+
 
 //Here goest the google code closure-compressed md5 calculating function
 var rotateLeft=function(a,b){return a<<b|a>>>32-b},addUnsigned=function(a,b){var g,h,i,j,c;i=a&2147483648;j=b&2147483648;g=a&1073741824;h=b&1073741824;c=(a&1073741823)+(b&1073741823);if(g&h)return c^2147483648^i^j;return g|h?c&1073741824?c^3221225472^i^j:c^1073741824^i^j:c^i^j},F=function(a,b,g){return a&b|~a&g},G=function(a,b,g){return a&g|b&~g},H=function(a,b,g){return a^b^g},I=function(a,b,g){return b^(a|~g)},FF=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(F(b,g,h),i),c));return addUnsigned(rotateLeft(a,
-j),b)},GG=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(G(b,g,h),i),c));return addUnsigned(rotateLeft(a,j),b)},HH=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(H(b,g,h),i),c));return addUnsigned(rotateLeft(a,j),b)},II=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(I(b,g,h),i),c));return addUnsigned(rotateLeft(a,j),b)},convertToWordArray=function(a){var b,g=a.length;b=g+8;for(var h=((b-b%64)/64+1)*16,i=Array(h-1),j=0,c=0;c<g;){b=(c-c%4)/4;j=c%4*
-8;i[b]|=a.charCodeAt(c)<<j;c++}b=(c-c%4)/4;j=c%4*8;i[b]|=128<<j;i[h-2]=g<<3;i[h-1]=g>>>29;return i},wordToHex=function(a){var b="",g="",h;for(h=0;h<=3;h++){g=a>>>h*8&255;g="0"+g.toString(16);b+=g.substr(g.length-2,2)}return b},uTF8Encode=function(a){a=a.replace(/\x0d\x0a/g,"\n");for(var b="",g=0;g<a.length;g++){var h=a.charCodeAt(g);if(h<128)b+=String.fromCharCode(h);else{if(h>127&&h<2048)b+=String.fromCharCode(h>>6|192);else{b+=String.fromCharCode(h>>12|224);b+=String.fromCharCode(h>>6&63|128)}b+=
+j),b)},GG=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(G(b,g,h),i),c));return addUnsigned(rotateLeft(a,j),b)},HH=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(H(b,g,h),i),c));return addUnsigned(rotateLeft(a,j),b)},II=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(I(b,g,h),i),c));return addUnsigned(rotateLeft(a,j),b)},convertToWordArray=function(a){var b,g=a.length;b=g+8;for(var h=((b-mod(b,64))/64+1)*16,i=Array(h-1),j=0,c=0;c<g;){b=(c-mod(c,4))/4;j=mod(c,4)*
+8;i[b]|=a.charCodeAt(c)<<j;c++}b=(c-mod(c,4))/4;j=mod(c,4)*8;i[b]|=128<<j;i[h-2]=g<<3;i[h-1]=g>>>29;return i},wordToHex=function(a){var b="",g="",h;for(h=0;h<=3;h++){g=a>>>h*8&255;g="0"+g.toString(16);b+=g.substr(g.length-2,2)}return b},uTF8Encode=function(a){a=a.replace(/\x0d\x0a/g,"\n");for(var b="",g=0;g<a.length;g++){var h=a.charCodeAt(g);if(h<128)b+=String.fromCharCode(h);else{if(h>127&&h<2048)b+=String.fromCharCode(h>>6|192);else{b+=String.fromCharCode(h>>12|224);b+=String.fromCharCode(h>>6&63|128)}b+=
 String.fromCharCode(h&63|128)}}return b},md5=function(a){var b=[],g,h,i,j,c,d,e,f;a=uTF8Encode(a);b=convertToWordArray(a);c=1732584193;d=4023233417;e=2562383102;f=271733878;for(a=0;a<b.length;a+=16){g=c;h=d;i=e;j=f;c=FF(c,d,e,f,b[a+0],7,3614090360);f=FF(f,c,d,e,b[a+1],12,3905402710);e=FF(e,f,c,d,b[a+2],17,606105819);d=FF(d,e,f,c,b[a+3],22,3250441966);c=FF(c,d,e,f,b[a+4],7,4118548399);f=FF(f,c,d,e,b[a+5],12,1200080426);e=FF(e,f,c,d,b[a+6],17,2821735955);d=FF(d,e,f,c,b[a+7],22,4249261313);c=FF(c,d,
 e,f,b[a+8],7,1770035416);f=FF(f,c,d,e,b[a+9],12,2336552879);e=FF(e,f,c,d,b[a+10],17,4294925233);d=FF(d,e,f,c,b[a+11],22,2304563134);c=FF(c,d,e,f,b[a+12],7,1804603682);f=FF(f,c,d,e,b[a+13],12,4254626195);e=FF(e,f,c,d,b[a+14],17,2792965006);d=FF(d,e,f,c,b[a+15],22,1236535329);c=GG(c,d,e,f,b[a+1],5,4129170786);f=GG(f,c,d,e,b[a+6],9,3225465664);e=GG(e,f,c,d,b[a+11],14,643717713);d=GG(d,e,f,c,b[a+0],20,3921069994);c=GG(c,d,e,f,b[a+5],5,3593408605);f=GG(f,c,d,e,b[a+10],9,38016083);e=GG(e,f,c,d,b[a+15],
 14,3634488961);d=GG(d,e,f,c,b[a+4],20,3889429448);c=GG(c,d,e,f,b[a+9],5,568446438);f=GG(f,c,d,e,b[a+14],9,3275163606);e=GG(e,f,c,d,b[a+3],14,4107603335);d=GG(d,e,f,c,b[a+8],20,1163531501);c=GG(c,d,e,f,b[a+13],5,2850285829);f=GG(f,c,d,e,b[a+2],9,4243563512);e=GG(e,f,c,d,b[a+7],14,1735328473);d=GG(d,e,f,c,b[a+12],20,2368359562);c=HH(c,d,e,f,b[a+5],4,4294588738);f=HH(f,c,d,e,b[a+8],11,2272392833);e=HH(e,f,c,d,b[a+11],16,1839030562);d=HH(d,e,f,c,b[a+14],23,4259657740);c=HH(c,d,e,f,b[a+1],4,2763975236);
@@ -265,7 +270,7 @@ var ui = {
 			sorted.sort(function(a,b) {
 				a = statCounter.statByUser[a];
 				b = statCounter.statByUser[b];
-				return b.in + b.out - (a.in + a.out);
+				return b.inM + b.outM - (a.inM + a.outM);
 			});
 		}
 		
@@ -273,7 +278,7 @@ var ui = {
 			sorted.sort(function(a,b) {
 				a = statCounter.statByUser[a];
 				b = statCounter.statByUser[b];
-				return b.in - a.in;
+				return b.inM - a.inM;
 			});
 		}
 		
@@ -281,7 +286,7 @@ var ui = {
 			sorted.sort(function(a,b) {
 				a = statCounter.statByUser[a];
 				b = statCounter.statByUser[b];
-				return b.out - a.out;
+				return b.outM - a.outM;
 			});
 		}
 		
@@ -304,9 +309,9 @@ var ui = {
 			var tr = ce('tr');
 			var tdR = ce('td', {innerHTML: rank + 1});
 			var tdN = ce('td', {innerHTML: '<a href="/id' + uid + '">' + udata.first_name + ' ' + udata.last_name + '</a>'});
-			var tdT = ce('td', {innerHTML: data.in + data.out});
-			var tdO = ce('td', {innerHTML: data.out});
-			var tdI = ce('td', {innerHTML: data.in});
+			var tdT = ce('td', {innerHTML: data.inM + data.outM});
+			var tdO = ce('td', {innerHTML: data.outM});
+			var tdI = ce('td', {innerHTML: data.inM});
 			var tdST = ce('td', {innerHTML: data.inSize + data.outSize});
 			var tdSO = ce('td', {innerHTML: data.outSize});
 			var tdSI = ce('td', {innerHTML: data.inSize});
@@ -342,8 +347,8 @@ var statCounter = {
 	
 	createEmptyStatsFor: function(message) {
 		var newStats = {
-			in: 0,
-			out: 0,
+			inM: 0,
+			outM: 0,
 			lastMessageDate: message.date,
 			lastMessageId: message.mid,
 			inSize: 0,
@@ -360,10 +365,10 @@ var statCounter = {
 			userStats = this.createEmptyStatsFor(message);
 		}
 		if(!message.out) {
-			userStats.in ++;
+			userStats.inM ++;
 			userStats.inSize += message.body.length;
 		} else {
-			userStats.out ++;
+			userStats.outM ++;
 			userStats.outSize += message.body.length;
 		}
 	}
