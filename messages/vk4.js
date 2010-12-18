@@ -4,7 +4,7 @@ var getKeys = function(obj){
 		keys.push(key);
 	}
 	return keys;
-}
+};
 
 var nKeys = function(obj){
 	var keys = 0;
@@ -12,7 +12,7 @@ var nKeys = function(obj){
 		keys ++;
 	}
 	return keys;
-}
+};
 
 var splitArrayToSubArrays = function(arr, maxPieceSize) {
 	var result = [];
@@ -20,7 +20,7 @@ var splitArrayToSubArrays = function(arr, maxPieceSize) {
 		result.push(arr.slice(maxPieceSize * i, maxPieceSize * (i + 1)));
 	}
 	return result;
-}
+};
 
 var formatDate = function(date) {
 	var year = date.getFullYear();
@@ -39,16 +39,16 @@ var formatDate = function(date) {
 	if(seconds < 10) seconds = '0' + seconds;
 	
 	return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
-}
+};
 
 var insertAfter = function ( referenceNode, newNode ){
 	referenceNode.parentNode.insertBefore( newNode, referenceNode.nextSibling );
-}
+};
 
 //because when inserted into address bar, expressions with percentage sign tend to get converted to characters
 var mod = function(first, second) {
 	return first % second;
-}
+};
 
 
 //Here goest the google code closure-compressed md5 calculating function
@@ -218,14 +218,14 @@ var SYS = {
 		pane.innerHTML += str + "\n";
 		pane.scrollTop = pane.scrollHeight;
 	}
-}
+};
 
 var user = {
 	lang: SYS.LANGUAGES[langConfig.id] == undefined ? SYS.LANGUAGES[3].strings : SYS.LANGUAGES[langConfig.id].strings,
 	verbose: false,
 	kbytes: true,
 	friendsOnly: false
-}
+};
 
 
 var ui = {
@@ -276,7 +276,7 @@ var ui = {
 	
 	displayStats: function(stats, userData, sortBy) {
 	
-	this.clearContent();
+		this.clearContent();
 	
 		ge('sideBar').style.display = 'none';
 		ge('pageBody').style.width = '96%';
@@ -758,7 +758,7 @@ var messageProcessor = {
 		ui.setHeader(user.lang.loadingMessageNumbers);
 		this.getNumberOfMessages();
 	}
-}
+};
 
 var apiConnector = {
 
@@ -930,7 +930,7 @@ var apiConnector = {
 			v: this.API_VERSION
 		});
 	}
-}
+};
 
 
 apiConnector.logon(SYS.APP_ID, SYS.LOGIN_SETTING);
