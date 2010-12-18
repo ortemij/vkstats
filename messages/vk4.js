@@ -563,7 +563,7 @@ var statCounter = {
 					udata = (this.userData[id] == undefined ? {first_name: 'DELETED', last_name : 'DELETED'} : this.userData[id]);
 					
 					value += "|-\n";
-					value += "| " + (rank++) + "\n";
+					value += "| " + rank + "\n";
 					value += "| [[id" + id + "|" + udata.first_name + ' ' + udata.last_name + "]]\n";
 					value += "| " + (sdata.inM + sdata.outM) + "\n";
 					value += "| " + sdata.outM + "\n";
@@ -575,6 +575,8 @@ var statCounter = {
 					}
 				}
 			}
+
+			rank++;
 		}
 		
 		value += "|}\n";
