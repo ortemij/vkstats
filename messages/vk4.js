@@ -231,6 +231,7 @@ var user = {
 var ui = {
 	setHeader: function(string) {
 		ge('header').innerHTML = string;
+		document.title = string;
 	},
 	
 	setContent: function(content) {
