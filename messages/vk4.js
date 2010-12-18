@@ -66,12 +66,13 @@ addUnsigned(f,j)}return(wordToHex(c)+wordToHex(d)+wordToHex(e)+wordToHex(f)).toL
 var SYS = {
 	VERSION: '4.0.0b',
 	APP_ID: 2045168,
-	LOGIN_SETTING: 0 + 4096,
+	LOGIN_SETTING: 0 + 2048 + 4096,
 	DEBUG: true,
 	MESSAGES_TO_PROCESS_IN_DEBUG_MODE: 200,
 	MESSAGES_PER_REQUEST: 100,
 	MSEC_BETWEEN_REQUESTS: 1000,
 	MAX_USERS_PER_REQUEST: 1000,
+	LINK_TO_CLUB: '/club21792535',
 	LANGUAGES: {
 		0: {
 			name: 'russian',
@@ -107,7 +108,11 @@ var SYS = {
 				warning: 'Внимание! Не удалось обработать сообщений',
 				friendsOnly: 'Учитывать только друзей',
 				withSelected: 'Выбранные',
-				export: 'экспортировать в заметку'
+				export: 'экспортировать в заметку',
+				ourGroup: 'Наша группа',
+				noteSuccess: 'Заметка успешно создана',
+				noteFailure: 'Не удалось создать заметку. Попробуйте ещё раз позднее.',
+				seeNote: 'Посмотреть'
 			}
 		},
 		1: {
@@ -144,7 +149,11 @@ var SYS = {
 				warning: 'Увага! Не вдалося обробити повідомлень',
 				friendsOnly: 'Враховувати тільки друзів',
 				withSelected: 'Вибрані',
-				export: 'експортувати в замітку'
+				export: 'експортувати в замітку',
+				ourGroup: 'Наша група',
+				noteSuccess: 'Замітка успішно створена',
+				noteFailure: 'Не вдалося створити замітку. Спробуйте ще раз пізніше.',
+				seeNote: 'Подивитися'
 			}
 		},
 		3: {
@@ -181,7 +190,11 @@ var SYS = {
 				warning: 'Warning! Failed to process messages',
 				friendsOnly: 'Count only for friends',
 				withSelected: 'Selected',
-				export: 'export to note'
+				export: 'export to note',
+				ourGroup: 'Our club',
+				noteSuccess: 'Note created successfully',
+				noteFailure: 'Failed to create a note. Please try again later',
+				seeNote: 'See it'
 			}
 		}
 	},
@@ -198,6 +211,10 @@ var SYS = {
 	log: function(str) {
 		str = formatDate(new Date()) + ': ' + str;
 		var pane = ge('loggerPane');
+		if(pane == undefined || pane == null) {
+			ui.addLoggerPane();
+			pane = ge('loggerPane');
+		}
 		pane.innerHTML += str + "\n";
 		pane.scrollTop = pane.scrollHeight;
 	}
@@ -265,6 +282,7 @@ var ui = {
 		ge('pageBody').style.width = '96%';
 		
 		var div = ce('div', {className: 'mailbox'});
+		div.innerHTML += '<div id="message" class="message" style="visibility:hidden; display:none;"> </div> ';
 		
 		this.appendContentElement(div);
 		
@@ -272,7 +290,10 @@ var ui = {
 		if(user.verbose) {
 			SYS.log('Processing complete, rendering results');
 		}
-		var cPane = ce('div', {className: 'bar clearFix actionBar', innerHTML: user.lang.thankYou});
+		
+		var cPane = ce('div', {className: 'bar clearFix actionBar', innerHTML:
+			user.lang.thankYou + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010</div>'
+		});
 		var mActions = ce('div', { id: "message_actions", innerHTML: user.lang.withSelected + ': '}, {visibility: 'hidden'});
 		
 		mActions.innerHTML += '<a href="#" onclick="statCounter.exportToNote();">' + user.lang.export + '</a>';
@@ -280,7 +301,7 @@ var ui = {
 		cPane.appendChild(mActions);
 		div.appendChild(cPane);
 		
-		var table = ce('table', {cellspacing: "0", cellpadding: "0", id: 'messages_rows'});
+		var table = ce('table', {cellspacing: "0", cellpadding: "0", id: 'messages_rows'}, {width: '100%'});
 		
 		div.appendChild(table);
 		
@@ -465,10 +486,22 @@ var ui = {
 		if( a != undefined) {
 			a.parentNode.removeChild(a);
 		}
+	},
+	
+	onNoteNotCreated: function() {
+		ge('message').innerHTML = user.lang.noteFailure;
+		ge('message').style.display = 'block';
+		ge('message').style.visibility = 'visible';
+	},
+	
+	onNoteCreated: function(nid) {
+		ge('message').innerHTML = user.lang.noteSuccess + ". <a href=\"/note" + user.uid + '_' + nid + '" target="_blank">' + user.lang.seeNote + '</a>';
+		ge('message').style.display = 'block';
+		ge('message').style.visibility = 'visible';
 	}
 };
 
-
+//TODO: add date statistics
 var statCounter = {
 	statByUser: {},
 	userData: {},
@@ -499,10 +532,70 @@ var statCounter = {
 			userStats.outM ++;
 			userStats.outSize += message.body.length;
 		}
-	}
+	},
+	
+	generateNoteContents: function() {
+		var value = "[[club21792535|vkontakte-stats]]\n\n";
+		value += "{|\n";
+		value += "|-\n";
+		value += "! ";
+		value += "!! " + user.lang.nameCol;
+		value += "!! " + user.lang.numberOfMessagesCol;
+		value += "!! " + user.lang.sentCol;
+		value += "!! " + user.lang.receivedCol
+		if(user.kbytes) {
+			value += "!! " + user.lang.symbolsCol;
+			value += "!! " + user.lang.sentSymbolsCol;
+			value += "!! " + user.lang.receivedSymbolsCol;
+		}
+		
+		value += "\n";
+		
+		var rank = 1;
+		var table = ge('messages_rows');
+		for (var i = 0; i < table.rows.length; ++i) {
+			var row = table.rows[i];
+			var id = row.id ? intval(row.id.replace(/^mess/, '')) : 0;
+			if (id) {
+				if(intval(ge('post_check_' + id).value)) {
+					
+					sdata = this.statByUser[id];
+					udata = (this.userData[id] == undefined ? {first_name: 'DELETED', last_name : 'DELETED'} : this.userData[id]);
+					
+					value += "|-\n";
+					value += "| " + (rank++) + "\n";
+					value += "| [[id" + id + "|" + udata.first_name + ' ' + udata.last_name + "]]\n";
+					value += "| " + (sdata.inM + sdata.outM) + "\n";
+					value += "| " + sdata.outM + "\n";
+					value += "| " + sdata.inM + "\n";
+					if(user.kbytes) {
+						value += "| " + (sdata.inSize + sdata.outSize) + "\n";
+						value += "| " + sdata.outSize + "\n";
+						value += "| " + sdata.inSize + "\n";
+					}
+				}
+			}
+		}
+		
+		value += "|}\n";
+		
+		return value;
+	},
 	
 	exportToNote: function() {
-		
+		apiConnector.createNote(user.lang.appName, this.generateNoteContents(), function(ao, rt) {
+			parsedResponse = eval('(' + rt + ')');
+			if(parsedResponse.response == undefined) {
+				SYS.log('Note creationg failed!' + rt);
+				ui.onNoteNotCreated();
+			} else {
+				var nid = parsedResponse.response.nid;
+				if(user.verbose) {
+					SYS.log('Note created: ' + nid);
+				}
+				ui.onNoteCreated(nid);
+			}
+		})
 	}
 };
 
@@ -805,6 +898,37 @@ var apiConnector = {
 				setTimeout('apiConnector.doGetUserData([' + ids[i] + '], apiConnector.onDone)', i * SYS.MSEC_BETWEEN_REQUESTS);
 			}
 		}
+	},
+	
+	createNote: function(title, text, onDone) {
+		if(user.verbose) {
+			SYS.log('createNote invoked: title=' + title + '; text=' + text);
+		}
+		var toMd5 = user.uid;
+		
+		toMd5 += 'api_id' + '=' + this.appId;
+		toMd5 += 'format=JSON';
+		toMd5 += 'method=notes.add';
+		
+		toMd5 += 'text=' + text;
+		toMd5 += 'title=' + title;
+		
+		toMd5 += 'v=' + this.API_VERSION;
+		toMd5 += this.secret;
+		
+		var ajax = new Ajax();
+		ajax.onDone = onDone;
+		
+		ajax.post(this.API_ADDRESS, {
+			api_id: apiConnector.appId,
+			format: 'JSON',
+			method: 'notes.add',
+			sid: apiConnector.sid,
+			sig: md5(toMd5),
+			text: text,
+			title: title,
+			v: this.API_VERSION
+		});
 	}
 }
 
