@@ -229,9 +229,13 @@ var user = {
 
 
 var ui = {
+	setTitle: function(string) {
+		document.title = string;
+	},
+
 	setHeader: function(string) {
 		ge('header').innerHTML = string;
-		document.title = string;
+		this.setTitle(string);
 	},
 	
 	setContent: function(content) {
@@ -267,12 +271,15 @@ var ui = {
 	},
 	
 	updateProgressBar: function(processedIncoming, totalIncoming, processedOutgoing, totalOutgoing) {
-		var processed = processedIncoming + processedOutgoing;
-		var total = totalIncoming + totalOutgoing;
-		ge('progressbarbg').style.width = (100 * processed / total) + '%';
+		var processed = processedIncoming + processedOutgoing,
+			total = totalIncoming + totalOutgoing,
+			percentage = (100 * processed / total);
+		ge('progressbarbg').style.width = percentage + '%';
 		ge('progresstext').innerHTML = user.lang.messagesProcessed + ': ' +
 			user.lang.incoming + ': ' + processedIncoming + '/' + totalIncoming + '; ' +
 			user.lang.outgoing + ': ' + processedOutgoing + '/' + totalOutgoing;
+
+		this.setTitle(Math.floor(percentage) + '% ' + user.lang.processingMessages);
 	},
 	
 	displayStats: function(stats, userData, sortBy) {
@@ -295,7 +302,7 @@ var ui = {
 		var cPane = ce('div', {className: 'bar clearFix actionBar', innerHTML:
 			user.lang.thankYou + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010</div>'
 		});
-		var mActions = ce('div', { id: "message_actions", innerHTML: user.lang.withSelected + ': '}, {visibility: 'hidden'});
+		var mActions = ce('div', {id: "message_actions", innerHTML: user.lang.withSelected + ': '}, {visibility: 'hidden'});
 		
 		mActions.innerHTML += '<a href="#" onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</a>';
 		
@@ -449,7 +456,7 @@ var ui = {
 		
 		var mbox = new MessageBox({title: user.lang.settingsText});
 		
-		mbox.addButton({label: user.lang.startButton, onClick: function() { mbox.hide(); messageProcessor.start();}});
+		mbox.addButton({label: user.lang.startButton, onClick: function() {mbox.hide();messageProcessor.start();}});
 		
 		//html = '<input type="checkbox" onclick="user.verbose=!user.verbose;" /> ' + user.lang.verbose;
 		html = '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_verbose" /></div>';
@@ -467,13 +474,13 @@ var ui = {
 		new Checkbox(ge('param_kbytes'), {
 			label: user.lang.kbytes,
 			checked: 1,
-			onChange: function() { user.kbytes = !user.kbytes;}
+			onChange: function() {user.kbytes = !user.kbytes;}
 		});
 		
 		new Checkbox(ge('param_friends_only'), {
 			label: user.lang.friendsOnly,
 			checked: 0,
-			onChange: function() { user.friendsOnly = !user.friendsOnly;}
+			onChange: function() {user.friendsOnly = !user.friendsOnly;}
 		});
 	},
 	
