@@ -67,7 +67,7 @@ var SYS = {
 	VERSION: '4.0.0b',
 	APP_ID: 2045168,
 	LOGIN_SETTING: 0 + 2048 + 4096,
-	DEBUG: true,
+	DEBUG: false,
 	MESSAGES_TO_PROCESS_IN_DEBUG_MODE: 200,
 	MESSAGES_PER_REQUEST: 100,
 	MSEC_BETWEEN_REQUESTS: 1000,
@@ -108,7 +108,7 @@ var SYS = {
 				warning: 'Внимание! Не удалось обработать сообщений',
 				friendsOnly: 'Учитывать только друзей',
 				withSelected: 'Выбранные',
-				export: 'экспортировать в заметку',
+				exportToNote: 'экспортировать в заметку',
 				ourGroup: 'Наша группа',
 				noteSuccess: 'Заметка успешно создана',
 				noteFailure: 'Не удалось создать заметку. Попробуйте ещё раз позднее.',
@@ -149,7 +149,7 @@ var SYS = {
 				warning: 'Увага! Не вдалося обробити повідомлень',
 				friendsOnly: 'Враховувати тільки друзів',
 				withSelected: 'Вибрані',
-				export: 'експортувати в замітку',
+				exportToNote: 'експортувати в замітку',
 				ourGroup: 'Наша група',
 				noteSuccess: 'Замітка успішно створена',
 				noteFailure: 'Не вдалося створити замітку. Спробуйте ще раз пізніше.',
@@ -190,7 +190,7 @@ var SYS = {
 				warning: 'Warning! Failed to process messages',
 				friendsOnly: 'Count only for friends',
 				withSelected: 'Selected',
-				export: 'export to note',
+				exportToNote: 'export to note',
 				ourGroup: 'Our club',
 				noteSuccess: 'Note created successfully',
 				noteFailure: 'Failed to create a note. Please try again later',
@@ -296,7 +296,7 @@ var ui = {
 		});
 		var mActions = ce('div', { id: "message_actions", innerHTML: user.lang.withSelected + ': '}, {visibility: 'hidden'});
 		
-		mActions.innerHTML += '<a href="#" onclick="statCounter.exportToNote();">' + user.lang.export + '</a>';
+		mActions.innerHTML += '<a href="#" onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</a>';
 		
 		cPane.appendChild(mActions);
 		div.appendChild(cPane);
