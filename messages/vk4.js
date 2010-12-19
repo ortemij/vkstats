@@ -559,12 +559,13 @@ var statCounter = {
 		
 		value += "\n";
 		
-		var rank = 1;
+		var rank = 0;
 		var table = ge('messages_rows');
 		for (var i = 0; i < table.rows.length; ++i) {
 			var row = table.rows[i];
 			var id = row.id ? intval(row.id.replace(/^mess/, '')) : 0;
 			if (id) {
+				rank++;
 				if(intval(ge('post_check_' + id).value)) {
 					
 					sdata = this.statByUser[id];
@@ -582,9 +583,7 @@ var statCounter = {
 						value += "| " + sdata.inSize + "\n";
 					}
 				}
-			}
-
-			rank++;
+			}	
 		}
 		
 		value += "|}\n";
