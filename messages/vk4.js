@@ -64,7 +64,7 @@ addUnsigned(f,j)}return(wordToHex(c)+wordToHex(d)+wordToHex(e)+wordToHex(f)).toL
 
 
 var SYS = {
-	VERSION: '4.0.1',
+	VERSION: '4.0.2',
 	APP_ID: 2045168,
 	LOGIN_SETTING: 0 + 2048 + 4096,
 	DEBUG: false,
@@ -112,7 +112,8 @@ var SYS = {
 				ourGroup: 'Наша группа',
 				noteSuccess: 'Заметка успешно создана',
 				noteFailure: 'Не удалось создать заметку. Попробуйте ещё раз позднее.',
-				seeNote: 'Посмотреть'
+				seeNote: 'Посмотреть',
+				wrongPage: 'Щоб запустити скрипт, ви повинні знаходитися в "Моїх повідомленнях"'
 			}
 		},
 		1: {
@@ -153,7 +154,8 @@ var SYS = {
 				ourGroup: 'Наша група',
 				noteSuccess: 'Замітка успішно створена',
 				noteFailure: 'Не вдалося створити замітку. Спробуйте ще раз пізніше.',
-				seeNote: 'Подивитися'
+				seeNote: 'Подивитися',
+				wrongPage: 'You need to be at "My Messages" page for this script to run!'
 			}
 		},
 		3: {
@@ -194,7 +196,8 @@ var SYS = {
 				ourGroup: 'Our club',
 				noteSuccess: 'Note created successfully',
 				noteFailure: 'Failed to create a note. Please try again later',
-				seeNote: 'See it'
+				seeNote: 'See it',
+				wrongPage: 'You need to be at "My Messages" page for this script to run!'
 			}
 		}
 	},
@@ -283,6 +286,8 @@ var ui = {
 	},
 	
 	displayStats: function(stats, userData, sortBy) {
+	
+		messagesChecked = 0; actionsShown = false;
 	
 		this.clearContent();
 	
@@ -458,7 +463,6 @@ var ui = {
 		
 		mbox.addButton({label: user.lang.startButton, onClick: function() {mbox.hide();messageProcessor.start();}});
 		
-		//html = '<input type="checkbox" onclick="user.verbose=!user.verbose;" /> ' + user.lang.verbose;
 		html = '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_verbose" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_kbytes" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_friends_only" /></div>';
@@ -533,6 +537,12 @@ var statCounter = {
 		if(userStats == undefined) {
 			userStats = this.createEmptyStatsFor(message);
 		}
+		
+		if(userStats.lastMessageDate < message.date) {
+			userStats.lastMessageDate = message.date;
+			userStats.lastMessageId = message.mid;
+		}
+		
 		if(!message.out) {
 			userStats.inM ++;
 			userStats.inSize += message.body.length;
@@ -782,7 +792,7 @@ var apiConnector = {
 		
 		var logonFrame = ce("iframe", {
 			src: '/login.php?app=' + appId + '&layout=popup&type=browser&settings=' + settings
-		}, {position: 'relative', width: '100%'});
+		}, {position: 'relative', width: '100%', height: '500px'});
 		logonFrame.setAttribute('onload', "apiConnector.onLogonFrameLoaded(this.contentWindow.location.href)");
 		
 		ui.setHeader(user.lang.authorizing + '...');
@@ -941,5 +951,8 @@ var apiConnector = {
 	}
 };
 
-
-apiConnector.logon(SYS.APP_ID, SYS.LOGIN_SETTING);
+if(/http:\/\/((vk\.com)|(vkontakte.ru))\/mail.php.*/.test(location.href)) {
+	apiConnector.logon(SYS.APP_ID, SYS.LOGIN_SETTING);
+} else {
+	alert(user.lang.wrongPage);
+}
