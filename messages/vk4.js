@@ -22,7 +22,7 @@ var splitArrayToSubArrays = function(arr, maxPieceSize) {
 	return result;
 };
 
-var formatDate = function(date) {
+var formatDate = function(date, withMsec) {
 	var year = date.getFullYear();
 	var month = date.getMonth() + 1;
 	if(month < 10) month = '0' + month;
@@ -37,6 +37,16 @@ var formatDate = function(date) {
 	
 	var seconds = date.getSeconds();
 	if(seconds < 10) seconds = '0' + seconds;
+	
+	if(withMsec) {
+	
+		var msec = mod(date.getTime(), 1000);
+		if(msec < 100) msec = '0' + msec;
+		if(intval(msec) < 10) msec = '0' + msec;
+	
+		seconds = seconds + '.' + msec;
+		
+	}
 	
 	return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
 };
@@ -70,9 +80,11 @@ var SYS = {
 	DEBUG: false,
 	MESSAGES_TO_PROCESS_IN_DEBUG_MODE: 200,
 	MESSAGES_PER_REQUEST: 100,
-	MSEC_BETWEEN_REQUESTS: 1000,
+	MSEC_BETWEEN_REQUESTS: 333,
+	MSEC_BETWEEN_REQUESTS_FOR_USERDATA: 1000,
 	MAX_USERS_PER_REQUEST: 1000,
 	LINK_TO_CLUB: '/club21792535',
+	TOO_MANY_REQUESTS_ERR_CODE: 6,
 	LANGUAGES: {
 		0: {
 			name: 'russian',
@@ -212,7 +224,7 @@ var SYS = {
 	},
 	
 	log: function(str) {
-		str = formatDate(new Date()) + ': ' + str;
+		str = formatDate(new Date(), true) + ': ' + str;
 		var pane = ge('loggerPane');
 		if(pane == undefined || pane == null) {
 			ui.addLoggerPane();
@@ -662,53 +674,57 @@ var messageProcessor = {
 		this.api.getUserNames(getKeys(statCounter.statByUser),function(ao,rt) {messageProcessor.onUserProfilesLoaded(rt);});
 	},
 	
-	onMessagesLoaded: function(response, out) {
+	onMessagesLoaded: function(parsedResponse, out) {
 	
-		var parsedResponse = eval('(' + response + ')');
-		
-		if(parsedResponse.error != undefined) {
-			SYS.fatal(response);
-		}
-		
-		parsedResponse = parsedResponse.response;
-		var currentMessages = parsedResponse[0];
-		
-		if(user.verbose) {
-			SYS.log('Got ' + (parsedResponse.length - 1) + ' messages');
-		}
-		
-		for(var i = 1; i < parsedResponse.length; i ++) {
-			statCounter.processSingleMessage(parsedResponse[i]);
-		}
-		
 		var offset = 0;
-		if(!out) {
-			this.processedIncomingMessages += parsedResponse.length - 1;
-			offset = this.processedIncomingMessages + (currentMessages - this.incomingMessages);
+		
+		if(parsedResponse.response != undefined) {
+		
+			parsedResponse = parsedResponse.response;
+			var currentMessages = parsedResponse[0];
 			
-			if(currentMessages != this.incomingMessages && user.verbose) {
-				SYS.log('By the way, the user has received ' + (currentMessages - this.incomingMessages) + ' message(s) after the script was started');
+			if(user.verbose) {
+				SYS.log('Got ' + (parsedResponse.length - 1) + ' messages');
 			}
 			
-			if(offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
-				out = 1;
-				offset = 0;
+			for(var i = 1; i < parsedResponse.length; i ++) {
+				statCounter.processSingleMessage(parsedResponse[i]);
 			}
+			
+			
+			if(!out) {
+				this.processedIncomingMessages += parsedResponse.length - 1;
+				offset = this.processedIncomingMessages + (currentMessages - this.incomingMessages);
+				
+				if(currentMessages != this.incomingMessages && user.verbose) {
+					SYS.log('By the way, the user has received ' + (currentMessages - this.incomingMessages) + ' message(s) after the script was started');
+				}
+				
+				if(offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
+					out = 1;
+					offset = 0;
+				}
+			} else {
+				this.processedOutgoingMessages += parsedResponse.length - 1;
+				offset = this.processedOutgoingMessages + (currentMessages - this.outgoingMessages);
+				
+				if(currentMessages != this.outgoingMessages && user.verbose) {
+					SYS.log('By the way, the user has sent ' + (currentMessages - this.outgoingMessages) + ' message(s) after the script was started');
+				}
+				
+				if(offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
+					this.onAllMessagesLoaded();
+					return;
+				}
+			}
+			
+			ui.updateProgressBar(this.processedIncomingMessages, this.incomingMessages, this.processedOutgoingMessages, this.outgoingMessages);
 		} else {
-			this.processedOutgoingMessages += parsedResponse.length - 1;
-			offset = this.processedOutgoingMessages + (currentMessages - this.outgoingMessages);
-			
-			if(currentMessages != this.outgoingMessages && user.verbose) {
-				SYS.log('By the way, the user has sent ' + (currentMessages - this.outgoingMessages) + ' message(s) after the script was started');
-			}
-			
-			if(offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
-				this.onAllMessagesLoaded();
-				return;
-			}
+			out = this.out;
+			offset = this.offset;
 		}
 		
-		ui.updateProgressBar(this.processedIncomingMessages, this.incomingMessages, this.processedOutgoingMessages, this.outgoingMessages);
+		
 		
 		var elapsedTime = (new Date()).getTime() - this.requestStartTime;
 		
@@ -721,14 +737,14 @@ var messageProcessor = {
 				SYS.log('Starting new request...');
 			}
 			this.requestStartTime = (new Date()).getTime();
-			this.api.getMessages(out, offset, SYS.MESSAGES_PER_REQUEST, function(ao, rt) {messageProcessor.onMessagesLoaded(rt, out)});
+			this.api.getMessages(out, offset, SYS.MESSAGES_PER_REQUEST, function(response) {messageProcessor.onMessagesLoaded(response, out)});
 		} else {
 			this.out = out;
 			this.offset = offset;
 			if(user.verbose) {
 				SYS.log('Scheduling new request in ' + (SYS.MSEC_BETWEEN_REQUESTS - elapsedTime) + 'ms');
 			}
-			setTimeout("messageProcessor.requestStartTime = (new Date()).getTime(); messageProcessor.api.getMessages(messageProcessor.out, messageProcessor.offset, SYS.MESSAGES_PER_REQUEST, function(ao, rt) {messageProcessor.onMessagesLoaded(rt, messageProcessor.out)});", SYS.MSEC_BETWEEN_REQUESTS - elapsedTime);
+			setTimeout("messageProcessor.requestStartTime = (new Date()).getTime(); messageProcessor.api.getMessages(messageProcessor.out, messageProcessor.offset, SYS.MESSAGES_PER_REQUEST, function(response) {messageProcessor.onMessagesLoaded(response, messageProcessor.out)});", SYS.MSEC_BETWEEN_REQUESTS - elapsedTime);
 		}
 	},
 	
@@ -738,17 +754,16 @@ var messageProcessor = {
 		ui.updateProgressBar(0, this.incomingMessages, 0, this.outgoingMessages);
 		this.requestStartTime = (new Date()).getTime();
 		
-		this.api.getMessages(0, 0, SYS.MESSAGES_PER_REQUEST, function(ao, rt) {messageProcessor.onMessagesLoaded(rt, 0)});
+		this.api.getMessages(0, 0, SYS.MESSAGES_PER_REQUEST, function(response) {messageProcessor.onMessagesLoaded(response, 0)});
 	},
 
-	onMessageNumbersLoaded: function(response, out) {
-		var parsedResponse = eval('(' + response + ')');
+	onMessageNumbersLoaded: function(parsedResponse, out) {
+		var parsedResponse = parsedResponse.response;
 		
-		if(parsedResponse.response == undefined) {
-			SYS.fatal(response);
+		if(user.verbose) {
+			SYS.log('Loaded message numbers [' + out + ']: ' + parsedResponse[0]);
 		}
 		
-		parsedResponse = parsedResponse.response;
 		if(!out) {
 			this.incomingMessages = parsedResponse[0];
 		} else {
@@ -756,13 +771,13 @@ var messageProcessor = {
 		}
 		
 		if(this.incomingMessages != undefined && this.outgoingMessages != undefined) {
-			messageProcessor.startProcessingMessages();
+			setTimeout(function() {messageProcessor.startProcessingMessages()}, SYS.MSEC_BETWEEN_REQUESTS);
 		}
 	},
 
 	getNumberOfMessages: function() {
-		this.api.getMessages(0, 0, 1, function(ao, rt) {messageProcessor.onMessageNumbersLoaded(rt, 0)});
-		this.api.getMessages(1, 0, 1, function(ao, rt) {messageProcessor.onMessageNumbersLoaded(rt, 1)});
+		this.api.getMessages(0, 0, 1, function(response) {messageProcessor.onMessageNumbersLoaded(response, 0)});
+		setTimeout(function() {apiConnector.getMessages(1, 0, 1, function(response) {messageProcessor.onMessageNumbersLoaded(response, 1)})}, SYS.MSEC_BETWEEN_REQUESTS * 2);
 	},
 
 	start: function() {
@@ -850,7 +865,19 @@ var apiConnector = {
 		toMd5 += this.secret;
 		
 		var ajax = new Ajax();
-		ajax.onDone = onDone;
+		ajax.onDone = function(ao,rt) {
+			var parsedResponse = eval('(' + rt + ')');
+			if(parsedResponse.error != undefined) {
+				if(parsedResponse.error.error_code == SYS.TOO_MANY_REQUESTS_ERR_CODE) {
+					SYS.log('too many requests: ' + rt);
+					onDone({});
+				} else {
+					SYS.fatal(rt);
+				}
+			} else {
+				onDone(parsedResponse);
+			}
+		};
 		
 		
 		params = {
@@ -914,7 +941,7 @@ var apiConnector = {
 			if(i == 0) {
 				this.doGetUserData(ids[i], onDone);
 			} else {
-				setTimeout('apiConnector.doGetUserData([' + ids[i] + '], apiConnector.onDone)', i * SYS.MSEC_BETWEEN_REQUESTS);
+				setTimeout('apiConnector.doGetUserData([' + ids[i] + '], apiConnector.onDone)', i * SYS.MSEC_BETWEEN_REQUESTS_FOR_USERDATA);
 			}
 		}
 	},
