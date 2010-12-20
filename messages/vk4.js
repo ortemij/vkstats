@@ -84,9 +84,14 @@ var mod = function(first, second) {
 var myCheckChange = function(obj, uid) {
 	checkChange(obj,uid);
 	if(messagesChecked > SYS.MAX_USERS_AT_ONE_GRAPH) {
-		ge('plot_graph_link').style.visibility = 'hidden';
+		if(user.plotGraphs) {
+			ge('plot_graphs_links').style.visibility = 'hidden';
+		}
+		
 	} else {
-		ge('plot_graph_link').style.visibility = '';
+		if(user.plotGraphs) {
+			ge('plot_graphs_links').style.visibility = '';
+		}
 	}
 };
 
@@ -159,7 +164,10 @@ var SYS = {
 				seeNote: 'Посмотреть',
 				wrongPage: 'Чтобы использовать скрипт, вы должны находиться в "Моих Сообщениях"!',
 				plotKbytesGraph: 'построить график по числу символов',
-				plotMessagesGraph: 'построить график по числу сообщений'
+				plotMessagesGraph: 'построить график по числу сообщений',
+				wantToPlotGraphs: 'Я захочу строить графики общения от времени',
+				totalFirstName: 'Общая', 
+				totalLastName: 'статистика'
 			}
 		},
 		1: {
@@ -203,7 +211,10 @@ var SYS = {
 				seeNote: 'Подивитися',
 				wrongPage: 'Щоб запустити скрипт, ви повинні знаходитися в "Моїх повідомленнях"',
 				plotKbytesGraph: 'побудувати графік за кількістю символів',
-				plotMessagesGraph: 'побудувати графік за кількістю сообщенійь'
+				plotMessagesGraph: 'побудувати графік за кількістю сообщенійь',
+				wantToPlotGraphs: 'Я захочу будувати гарні графіки',
+				totalFirstName: 'Загальна', 
+				totalLastName: 'статистика'
 			}
 		},
 		3: {
@@ -247,7 +258,10 @@ var SYS = {
 				seeNote: 'See it',
 				wrongPage: 'You need to be at "My Messages" page for this script to run!',
 				plotKbytesGraph: 'plot symbol number graph',
-				plotMessagesGraph: 'plot message number graph'
+				plotMessagesGraph: 'plot message number graph',
+				wantToPlotGraphs: 'I\'d like to plot fancy graphs',
+				totalFirstName: 'Overall', 
+				totalLastName: 'stats'
 			}
 		}
 	},
@@ -279,7 +293,8 @@ var user = {
 	lang: SYS.LANGUAGES[langConfig.id] == undefined ? SYS.LANGUAGES[3].strings : SYS.LANGUAGES[langConfig.id].strings,
 	verbose: false,
 	kbytes: true,
-	friendsOnly: false
+	friendsOnly: false,
+	plotGraphs: true
 };
 
 
@@ -422,15 +437,19 @@ var ui = {
 		var mActions = ce('div', {id: "message_actions", innerHTML: user.lang.withSelected + ': '}, {visibility: 'hidden'});
 		
 		mActions.innerHTML += '<a href="#" onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</a>';
-		mActions.innerHTML += ' | ';
-		mActions.innerHTML += '<a href="#" onclick="ui.plotGraph(false);" id="plot_graph_link">' + user.lang.plotMessagesGraph + '</a>';
-		if(user.kbytes) {
-			mActions.innerHTML += ' | ';
-			mActions.innerHTML += '<a href="#" onclick="ui.plotGraph(true);" id="plot_graph_link">' + user.lang.plotKbytesGraph + '</a>';
+		if(user.plotGraphs) {
+			iHTML =  '<span id="plot_graphs_links"> | ';
+			iHTML += '<a href="#" onclick="ui.plotGraph(false);" id="plot_msg_graph_link">' + user.lang.plotMessagesGraph + '</a>';
+			if(user.kbytes) {
+				iHTML += ' | ';
+				iHTML += '<a href="#" onclick="ui.plotGraph(true);" id="plot_kb_graph_link">' + user.lang.plotKbytesGraph + '</a>';
+			}
+			mActions.innerHTML += iHTML + "</span>"
 		}
 		
-		cPane.appendChild(mActions);
+		
 		cPane.appendChild(ce('div', {id: "graph"}, {display:'none', width: '100%', height: '400px'}) );
+		cPane.appendChild(mActions);
 		div.appendChild(cPane);
 		
 		var table = ce('table', {cellspacing: "0", cellpadding: "0", id: 'messages_rows'}, {width: '100%'});
@@ -460,24 +479,24 @@ var ui = {
 		var tbody = ce('tbody');
 		table.appendChild(tbody);
 		
-		var sorted = this.sortBy(getKeys(stats), sortBy);
+		var sorted = [statCounter.ALL_ID].concat(this.sortBy(getKeys(stats), sortBy));
 
 		for(var rank = 0; rank < sorted.length; rank ++) {
 			var uid = sorted[rank];
 			
-			sdata = stats[uid];
-			udata = (userData[uid] == undefined ? {first_name: 'DELETED', last_name : 'DELETED'} : userData[uid]);
+			sdata = statCounter.getStatData(uid);
+			udata = statCounter.getUserData(uid);
 			
 			var tr = ce('tr', {id: 'mess' + uid});
 			
-			var tdR = ce('td', {innerHTML: rank + 1}, {textAlign: 'center',  width: "30px"});
+			var tdR = ce('td', {innerHTML: uid == statCounter.ALL_ID ? '' : rank}, {textAlign: 'center',  width: "30px"});
 			var tdS = ce('td', {innerHTML: '<div class=""></div><input type="hidden" id="post_check_' + uid + '">', className: 'msg_check'});
-			tdS.setAttribute('onmouseover', "checkOver(this, " + uid + ")");
-			tdS.setAttribute('onmouseout', "checkOut(this, " + uid + ")");
-			tdS.setAttribute('onclick', "myCheckChange(this, " + uid + ")");
+			tdS.setAttribute('onmouseover', "checkOver(this, '" + uid + "')");
+			tdS.setAttribute('onmouseout', "checkOut(this, '" + uid + "')");
+			tdS.setAttribute('onclick', "myCheckChange(this, '" + uid + "')");
 			
-			var tdP = ce('td', {innerHTML: '<a href="/id' + uid + '" target="_blank"><img src="' + udata.photo + '" /></a>', className: 'messagePicture'});
-			var tdN = ce('td', {innerHTML: '<a href="/id' + uid + '" target="_blank">' + udata.first_name + ' ' + udata.last_name + '</a>', className: 'messageFrom'});
+			var tdP = ce('td', {innerHTML: uid == statCounter.ALL_ID ? '' : ('<a href="/id' + uid + '" target="_blank"><img src="' + udata.photo + '" /></a>'), className: 'messagePicture'});
+			var tdN = ce('td', {innerHTML: (uid == statCounter.ALL_ID ? '' : ('<a href="/id' + uid + '" target="_blank">')) + udata.first_name + ' ' + udata.last_name + (uid == statCounter.ALL_ID ? '' : '</a>'), className: 'messageFrom'});
 			var tdT = ce('td', {innerHTML: sdata.inM + sdata.outM});
 			var tdO = ce('td', {innerHTML: sdata.outM});
 			var tdI = ce('td', {innerHTML: sdata.inM});
@@ -523,6 +542,7 @@ var ui = {
 		html = '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_verbose" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_kbytes" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_friends_only" /></div>';
+		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_fancy_graphs" /></div>';
 		
 		mbox.content(html).show();
 		
@@ -542,6 +562,12 @@ var ui = {
 			label: user.lang.friendsOnly,
 			checked: 0,
 			onChange: function() {user.friendsOnly = !user.friendsOnly;}
+		});
+		
+		new Checkbox(ge('param_fancy_graphs'), {
+			label: user.lang.wantToPlotGraphs,
+			checked: 1,
+			onChange: function() {user.plotGraphs = !user.plotGraphs;}
 		});
 	},
 	
@@ -569,8 +595,8 @@ var ui = {
 		ge('message').style.visibility = 'visible';
 	},
 	
-	sentColors: [16720403, 16742144, 2280448],
-	receivedColors: [16620403, 16642144, 2180448],
+	sentColors: [0x67dc3e, 0xf3c740, 0xf0483b],
+	receivedColors: [0x7fc966, 0xedcb65, 0xf06459],
 	
 	plotGraph: function(kBytes) {
 	
@@ -615,18 +641,18 @@ var ui = {
 						var sentMessages = '{"c": ' + this.sentColors[rank] + ',"f": 0, "d": [';
 						var receivedMessages = '{"c": ' + this.receivedColors[rank] + ',"f": 0, "d": [';
 					}
-					for(var entry in statCounter.statByUser[id].history) {
-						var histData = statCounter.statByUser[id].history[entry]
+					for(var entry in statCounter.getStatData(id).history) {
+						var histData = statCounter.getStatData(id).history[entry]
 						
 						if(kBytes) {
 							totBytesSent += histData.outSize;
 							totBytesRec += histData.inSize;
-							sentSizes += '[' + entry + ',' + totBytesSent + '],';
+							sentSizes += '[' + entry + ',' + totBytesSent + ', "-"],';
 							receivedSizes += '[' + entry + ',' + totBytesRec + '],';
 						} else {
 							totSent += histData.outM;
 							totRec += histData.inM;
-							sentMessages += '[' + entry + ',' + totSent + '],';
+							sentMessages += '[' + entry + ',' + totSent + ', "-"],';
 							receivedMessages += '[' + entry + ',' + totRec + '],';
 						}
 					}
@@ -634,25 +660,25 @@ var ui = {
 					
 					
 					if(kBytes) {
-						sentSizes += '[' + statCounter.lastMessageTime + ',' + totBytesSent + ']], "name": "' + statCounter.userData[id].first_name + ' ' + statCounter.userData[id].last_name + ' ' + user.lang.sentSymbolsCol + '"}';
-						receivedSizes += '[' + statCounter.lastMessageTime + ',' + totBytesRec + ']], "name": "' + statCounter.userData[id].first_name + ' ' + statCounter.userData[id].last_name + ' ' + user.lang.receivedSymbolsCol + '"}';
+						sentSizes += '[' + statCounter.lastMessageTime + ',' + totBytesSent + ', "-"]], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.sentCol + '"}';
+						receivedSizes += '[' + statCounter.lastMessageTime + ',' + totBytesRec + ']], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.receivedCol + '"}';
 						graphData += sentSizes + ',' + receivedSizes;
 					} else {
-						sentMessages += '[' + statCounter.lastMessageTime + ',' + totSent + ']], "name": "' + statCounter.userData[id].first_name + ' ' + statCounter.userData[id].last_name + ' ' + user.lang.sentCol + '"}';
-						receivedMessages += '[' + statCounter.lastMessageTime + ',' + totRec + ']], "name": "' + statCounter.userData[id].first_name + ' ' + statCounter.userData[id].last_name + ' ' + user.lang.receivedCol + '"}';
+						sentMessages += '[' + statCounter.lastMessageTime + ',' + totSent + ', "-"]], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.sentCol + '"}';
+						receivedMessages += '[' + statCounter.lastMessageTime + ',' + totRec + ']], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.receivedCol + '"}';
 						graphData += sentMessages + ',' + receivedMessages;
 					}
 					
 					rank ++;
 				}
-			}	
+			}
 		}
 		flashVars.graphdata = fixQuot(graphData + ']');
 		if(user.verbose) {
 			SYS.log('plotting: ' + flashVars.graphdata);
 		}
 		flashVars.div_id = 'graph';
-		swfobject.embedSWF("/swf/graph.swf?0.28", "graph", "100%", "100%", "8", "", flashVars, params);
+		swfobject.embedSWF("/swf/graph.swf?0.28", "graph", "100%", "400px", "8", "", flashVars, params);
 		
 	}
 };
@@ -662,6 +688,16 @@ var statCounter = {
 	statByUser: {},
 	userData: {},
 	lastMessageTime: 0,
+	overallStats: {
+		inM: 0,
+		outM: 0,
+		lastMessageDate: 0,
+		lastMessageId: 0,
+		inSize: 0,
+		outSize: 0,
+		history: {}
+	},
+	ALL_ID: -1,
 	
 	createEmptyStatsFor: function(message) {
 		var newStats = {
@@ -678,12 +714,7 @@ var statCounter = {
 		return newStats;
 	},
 	
-	processSingleMessage: function(message) {
-		userStats = this.statByUser[message.uid];
-		if(userStats == undefined) {
-			userStats = this.createEmptyStatsFor(message);
-		}
-		
+	updateStats: function(message, userStats) {
 		if(userStats.lastMessageDate < message.date) {
 			userStats.lastMessageDate = message.date;
 			userStats.lastMessageId = message.mid;
@@ -700,8 +731,35 @@ var statCounter = {
 			userStats.outM ++;
 			userStats.outSize += message.body.length;
 		}
+		if(user.plotGraphs) {
+			userStats.history[message.date] = {inM: message.out ? 0 : 1, outM: message.out ? 1 : 0, inSize: message.out ? 0 : message.body.length, outSize: message.out ? message.body.length : 0};
+		}
+	},
+	
+	processSingleMessage: function(message) {
+		userStats = this.statByUser[message.uid];
+		if(userStats == undefined) {
+			userStats = this.createEmptyStatsFor(message);
+		}
+		this.updateStats(message, userStats);
+		this.updateStats(message, this.overallStats);
 		
-		userStats.history[message.date] = {inM: message.out ? 0 : 1, outM: message.out ? 1 : 0, inSize: message.out ? 0 : message.body.length, outSize: message.out ? message.body.length : 0};
+	},
+	
+	getStatData: function(id) {
+		if(id == this.ALL_ID) {
+			return this.overallStats;
+		}
+		
+		return this.statByUser[id];
+	},
+	
+	getUserData: function(id) {
+		if(id == this.ALL_ID) {
+			return {first_name: user.lang.totalFirstName, last_name : user.lang.totalLastName};
+		}
+		
+		return (this.userData[id] == undefined ? {first_name: 'DELETED', last_name : 'DELETED'} : this.userData[id]);
 	},
 	
 	generateNoteContents: function() {
@@ -725,16 +783,18 @@ var statCounter = {
 		var table = ge('messages_rows');
 		for (var i = 0; i < table.rows.length; ++i) {
 			var row = table.rows[i];
-			var id = row.id ? intval(row.id.replace(/^mess/, '')) : 0;
-			if (id) {
-				rank++;
+			var id = row.id ? row.id.replace(/^mess/, '') : 0;
+			if (id != 0) {
+				if(id != this.ALL_ID) {
+					rank++;
+				}
 				if(intval(ge('post_check_' + id).value)) {
 					
-					sdata = this.statByUser[id];
-					udata = (this.userData[id] == undefined ? {first_name: 'DELETED', last_name : 'DELETED'} : this.userData[id]);
+					sdata = this.getStatData(id);
+					udata = this.getUserData(id);
 					
 					value += "|-\n";
-					value += "| " + rank + "\n";
+					value += "| " + (id != this.ALL_ID ? rank : '') + "\n";
 					value += "| [[id" + id + "|" + udata.first_name + ' ' + udata.last_name + "]]\n";
 					value += "| " + (sdata.inM + sdata.outM) + "\n";
 					value += "| " + sdata.outM + "\n";
