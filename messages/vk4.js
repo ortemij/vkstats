@@ -6,6 +6,27 @@ var getKeys = function(obj){
 	return keys;
 };
 
+var loadjscssfile = function (filename, filetype){
+	if (filetype=="js"){
+		var fileref=document.createElement('script')
+		fileref.setAttribute("type","text/javascript")
+		fileref.setAttribute("src", filename)
+	}
+	else if (filetype=="css"){
+		var fileref=document.createElement("link")
+		fileref.setAttribute("rel", "stylesheet")
+		fileref.setAttribute("type", "text/css")
+		fileref.setAttribute("href", filename)
+	}
+	if (typeof fileref!="undefined")
+		document.getElementsByTagName("head")[0].appendChild(fileref)
+}
+
+var fixQuot = function(s) {
+	if(browser.msie)return s.replace(/\"/g, '&quot;');
+	else return s;
+}
+
 var nKeys = function(obj){
 	var keys = 0;
 	for(var key in obj){
@@ -60,6 +81,15 @@ var mod = function(first, second) {
 	return first % second;
 };
 
+var myCheckChange = function(obj, uid) {
+	checkChange(obj,uid);
+	if(messagesChecked > SYS.MAX_USERS_AT_ONE_GRAPH) {
+		ge('plot_graph_link').style.visibility = 'hidden';
+	} else {
+		ge('plot_graph_link').style.visibility = '';
+	}
+};
+
 
 //Here goest the google code closure-compressed md5 calculating function
 var rotateLeft=function(a,b){return a<<b|a>>>32-b},addUnsigned=function(a,b){var g,h,i,j,c;i=a&2147483648;j=b&2147483648;g=a&1073741824;h=b&1073741824;c=(a&1073741823)+(b&1073741823);if(g&h)return c^2147483648^i^j;return g|h?c&1073741824?c^3221225472^i^j:c^1073741824^i^j:c^i^j},F=function(a,b,g){return a&b|~a&g},G=function(a,b,g){return a&g|b&~g},H=function(a,b,g){return a^b^g},I=function(a,b,g){return b^(a|~g)},FF=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(F(b,g,h),i),c));return addUnsigned(rotateLeft(a,
@@ -74,17 +104,19 @@ addUnsigned(f,j)}return(wordToHex(c)+wordToHex(d)+wordToHex(e)+wordToHex(f)).toL
 
 
 var SYS = {
-	VERSION: '4.0.2',
+	VERSION: '4.1.0',
 	APP_ID: 2045168,
 	LOGIN_SETTING: 0 + 2048 + 4096,
 	DEBUG: false,
-	MESSAGES_TO_PROCESS_IN_DEBUG_MODE: 200,
+	MESSAGES_TO_PROCESS_IN_DEBUG_MODE: 400,
 	MESSAGES_PER_REQUEST: 100,
 	MSEC_BETWEEN_REQUESTS: 333,
 	MSEC_BETWEEN_REQUESTS_FOR_USERDATA: 1000,
 	MAX_USERS_PER_REQUEST: 1000,
 	LINK_TO_CLUB: '/club21792535',
 	TOO_MANY_REQUESTS_ERR_CODE: 6,
+	MAX_USERS_AT_ONE_GRAPH: 3,
+	PATH_TO_SWFOBJECT: 'http://vkontakte.ru/js/lib/swfobject2.js',
 	LANGUAGES: {
 		0: {
 			name: 'russian',
@@ -101,11 +133,11 @@ var SYS = {
 				verbose: 'Логгировать все действия',
 				gettingNames: 'Загрузка имён пользователей',
 				numberOfMessagesCol: 'Всего сообщений',
-				sentCol: 'Вы отправили',
-				receivedCol: 'Вы получили',
+				sentCol: 'Отправлено',
+				receivedCol: 'Получено',
 				symbolsCol: 'Всего символов',
-				sentSymbolsCol: 'Вы отправили символов',
-				receivedSymbolsCol: 'Вы получили символов',
+				sentSymbolsCol: 'Отправлено символов',
+				receivedSymbolsCol: 'Получено символов',
 				lastMsgCol: 'Последнее сообщение',
 				processingMessages: 'Обработка сообщений',
 				done: 'Обработка завершена',
@@ -125,7 +157,9 @@ var SYS = {
 				noteSuccess: 'Заметка успешно создана',
 				noteFailure: 'Не удалось создать заметку. Попробуйте ещё раз позднее.',
 				seeNote: 'Посмотреть',
-				wrongPage: 'Чтобы использовать скрипт, вы должны находиться в "Моих Сообщениях"!'
+				wrongPage: 'Чтобы использовать скрипт, вы должны находиться в "Моих Сообщениях"!',
+				plotKbytesGraph: 'построить график по числу символов',
+				plotMessagesGraph: 'построить график по числу сообщений'
 			}
 		},
 		1: {
@@ -167,7 +201,9 @@ var SYS = {
 				noteSuccess: 'Замітка успішно створена',
 				noteFailure: 'Не вдалося створити замітку. Спробуйте ще раз пізніше.',
 				seeNote: 'Подивитися',
-				wrongPage: 'Щоб запустити скрипт, ви повинні знаходитися в "Моїх повідомленнях"'
+				wrongPage: 'Щоб запустити скрипт, ви повинні знаходитися в "Моїх повідомленнях"',
+				plotKbytesGraph: 'побудувати графік за кількістю символів',
+				plotMessagesGraph: 'побудувати графік за кількістю сообщенійь'
 			}
 		},
 		3: {
@@ -209,7 +245,9 @@ var SYS = {
 				noteSuccess: 'Note created successfully',
 				noteFailure: 'Failed to create a note. Please try again later',
 				seeNote: 'See it',
-				wrongPage: 'You need to be at "My Messages" page for this script to run!'
+				wrongPage: 'You need to be at "My Messages" page for this script to run!',
+				plotKbytesGraph: 'plot symbol number graph',
+				plotMessagesGraph: 'plot message number graph'
 			}
 		}
 	},
@@ -232,8 +270,10 @@ var SYS = {
 		}
 		pane.innerHTML += str + "\n";
 		pane.scrollTop = pane.scrollHeight;
-	}
+	},
 };
+
+loadjscssfile(SYS.PATH_TO_SWFOBJECT, "js");
 
 var user = {
 	lang: SYS.LANGUAGES[langConfig.id] == undefined ? SYS.LANGUAGES[3].strings : SYS.LANGUAGES[langConfig.id].strings,
@@ -297,66 +337,7 @@ var ui = {
 		this.setTitle(Math.floor(percentage) + '% ' + user.lang.processingMessages);
 	},
 	
-	displayStats: function(stats, userData, sortBy) {
-	
-		messagesChecked = 0; actionsShown = false;
-	
-		this.clearContent();
-	
-		ge('sideBar').style.display = 'none';
-		ge('pageBody').style.width = '96%';
-		
-		var div = ce('div', {className: 'mailbox'});
-		div.innerHTML += '<div id="message" class="message" style="visibility:hidden; display:none;"> </div> ';
-		
-		this.appendContentElement(div);
-		
-	
-		if(user.verbose) {
-			SYS.log('Processing complete, rendering results');
-		}
-		
-		var cPane = ce('div', {className: 'bar clearFix actionBar', innerHTML:
-			user.lang.thankYou + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010</div>'
-		});
-		var mActions = ce('div', {id: "message_actions", innerHTML: user.lang.withSelected + ': '}, {visibility: 'hidden'});
-		
-		mActions.innerHTML += '<a href="#" onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</a>';
-		
-		cPane.appendChild(mActions);
-		div.appendChild(cPane);
-		
-		var table = ce('table', {cellspacing: "0", cellpadding: "0", id: 'messages_rows'}, {width: '100%'});
-		
-		div.appendChild(table);
-		
-		tableHTML = '<thead>' + '<th class="msg_check" onmouseover="checkOver(this, 0)" onmouseout="checkOut(this, 0)" onclick="checkChange(this, 0)"><div class=""></div><input type="hidden" id="post_check_0"></th>' + 
-			'<th style="text-align: center, width: 30px"> </th>' + 
-			'<th class="messagePicture"> </th>' + 
-			'<th class="messageFrom">' + user.lang.nameCol + '</th>' +
-			'<th onclick="javascript: ui.sort(\'tot\');" style="cursor: pointer">' + user.lang.numberOfMessagesCol + '</th>' + 
-			'<th onclick="javascript: ui.sort(\'out\');" style="cursor: pointer">' + user.lang.sentCol + '</th>' + 
-			'<th onclick="javascript: ui.sort(\'in\');" style="cursor: pointer">' + user.lang.receivedCol + '</th>';
-		if(user.kbytes) {
-			tableHTML +=
-			'<th onclick="javascript: ui.sort(\'tot-size\');" style="cursor: pointer">' + user.lang.symbolsCol + '</th>' + 
-			'<th onclick="javascript: ui.sort(\'out-size\');" style="cursor: pointer">' + user.lang.sentSymbolsCol + '</th>' + 
-			'<th onclick="javascript: ui.sort(\'in-size\');" style="cursor: pointer">' + user.lang.receivedSymbolsCol + '</th>';
-		}
-		
-		tableHTML +=
-			'<th onclick="javascript: ui.sort(\'date\');" style="cursor: pointer">' + user.lang.lastMsgCol + '</th>' + 
-			'</thead>';
-			
-		table.innerHTML  = tableHTML;
-
-		var tbody = ce('tbody');
-		table.appendChild(tbody);
-		
-		var sorted = getKeys(stats);
-		
-		
-		//FIXME: write a simple and generic way of sorting by fields
+	sortBy: function(sorted, sortBy) {
 		if(sortBy == 'tot-size') {
 			sorted.sort(function(a,b) {
 				a = statCounter.statByUser[a];
@@ -413,8 +394,74 @@ var ui = {
 			});
 		}
 		
+		return sorted;
+	},
+	
+	displayStats: function(stats, userData, sortBy) {
+	
+		messagesChecked = 0; actionsShown = false;
+	
+		this.clearContent();
+	
+		ge('sideBar').style.display = 'none';
+		ge('pageBody').style.width = '96%';
 		
+		var div = ce('div', {className: 'mailbox'});
+		div.innerHTML += '<div id="message" class="message" style="visibility:hidden; display:none;"> </div> ';
 		
+		this.appendContentElement(div);
+		
+	
+		if(user.verbose) {
+			SYS.log('Processing complete, rendering results');
+		}
+		
+		var cPane = ce('div', {className: 'bar clearFix actionBar', innerHTML:
+			user.lang.thankYou + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010</div>'
+		});
+		var mActions = ce('div', {id: "message_actions", innerHTML: user.lang.withSelected + ': '}, {visibility: 'hidden'});
+		
+		mActions.innerHTML += '<a href="#" onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</a>';
+		mActions.innerHTML += ' | ';
+		mActions.innerHTML += '<a href="#" onclick="ui.plotGraph(false);" id="plot_graph_link">' + user.lang.plotMessagesGraph + '</a>';
+		if(user.kbytes) {
+			mActions.innerHTML += ' | ';
+			mActions.innerHTML += '<a href="#" onclick="ui.plotGraph(true);" id="plot_graph_link">' + user.lang.plotKbytesGraph + '</a>';
+		}
+		
+		cPane.appendChild(mActions);
+		cPane.appendChild(ce('div', {id: "graph"}, {display:'none', width: '100%', height: '400px'}) );
+		div.appendChild(cPane);
+		
+		var table = ce('table', {cellspacing: "0", cellpadding: "0", id: 'messages_rows'}, {width: '100%'});
+		
+		div.appendChild(table);
+		
+		tableHTML = '<thead>' + '<th class="msg_check" onmouseover="checkOver(this, 0)" onmouseout="checkOut(this, 0)" onclick="myCheckChange(this, 0)"><div class=""></div><input type="hidden" id="post_check_0"></th>' + 
+			'<th style="text-align: center, width: 30px"> </th>' + 
+			'<th class="messagePicture"> </th>' + 
+			'<th class="messageFrom">' + user.lang.nameCol + '</th>' +
+			'<th onclick="javascript: ui.sort(\'tot\');" style="cursor: pointer">' + user.lang.numberOfMessagesCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'out\');" style="cursor: pointer">' + user.lang.sentCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'in\');" style="cursor: pointer">' + user.lang.receivedCol + '</th>';
+		if(user.kbytes) {
+			tableHTML +=
+			'<th onclick="javascript: ui.sort(\'tot-size\');" style="cursor: pointer">' + user.lang.symbolsCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'out-size\');" style="cursor: pointer">' + user.lang.sentSymbolsCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'in-size\');" style="cursor: pointer">' + user.lang.receivedSymbolsCol + '</th>';
+		}
+		
+		tableHTML +=
+			'<th onclick="javascript: ui.sort(\'date\');" style="cursor: pointer">' + user.lang.lastMsgCol + '</th>' + 
+			'</thead>';
+			
+		table.innerHTML  = tableHTML;
+
+		var tbody = ce('tbody');
+		table.appendChild(tbody);
+		
+		var sorted = this.sortBy(getKeys(stats), sortBy);
+
 		for(var rank = 0; rank < sorted.length; rank ++) {
 			var uid = sorted[rank];
 			
@@ -427,9 +474,7 @@ var ui = {
 			var tdS = ce('td', {innerHTML: '<div class=""></div><input type="hidden" id="post_check_' + uid + '">', className: 'msg_check'});
 			tdS.setAttribute('onmouseover', "checkOver(this, " + uid + ")");
 			tdS.setAttribute('onmouseout', "checkOut(this, " + uid + ")");
-			tdS.setAttribute('onclick', "checkChange(this, " + uid + ")");
-			//var cb = ce('input', {type: "hidden", id: "select_" + uid});
-			//tdS.appendChild(cb);
+			tdS.setAttribute('onclick', "myCheckChange(this, " + uid + ")");
 			
 			var tdP = ce('td', {innerHTML: '<a href="/id' + uid + '" target="_blank"><img src="' + udata.photo + '" /></a>', className: 'messagePicture'});
 			var tdN = ce('td', {innerHTML: '<a href="/id' + uid + '" target="_blank">' + udata.first_name + ' ' + udata.last_name + '</a>', className: 'messageFrom'});
@@ -522,6 +567,93 @@ var ui = {
 		ge('message').innerHTML = user.lang.noteSuccess + ". <a href=\"/note" + user.uid + '_' + nid + '" target="_blank">' + user.lang.seeNote + '</a>';
 		ge('message').style.display = 'block';
 		ge('message').style.visibility = 'visible';
+	},
+	
+	sentColors: [16720403, 16742144, 2280448],
+	receivedColors: [16620403, 16642144, 2180448],
+	
+	plotGraph: function(kBytes) {
+	
+		ge('graph').style.display = '';
+		var commonVars = {
+			isRTL: window.is_rtl,
+			'lang.select_graphs':fixQuot('filter'),
+			'lang.months':fixQuot('January,February,March,April,May,June,July,August,September,October,November,December'),
+			'lang.dayMonths':fixQuot('January,February,March,April,May,June,July,August,September,October,November,December'),
+			'lang.dateFormats.day_fullmon_year_hour':fixQuot('{day} {dayMonth} {year}, {hour12}:00'),
+			'lang.dateFormats.day_fullmon_year':fixQuot('{month} {day}, {year}'),
+			'lang.dateFormats.day_mon':fixQuot('{day} {month}'),
+			'lang.dateFormats.day_fullmon':fixQuot('{day} {month}'),
+			'lang.loading': fixQuot('Loading...'),
+			'lang.no_data': fixQuot('No input data'),
+			'lang.data_empty': fixQuot('Input data is empty'),
+			'lang.error_loading': fixQuot('Loading error')
+		};
+		var params = {
+			allowfullscreen: 'true'
+		};
+		flashVars = clone(commonVars);
+		
+		var table = ge('messages_rows');
+		var graphData = '[';
+		var rank = 0;
+		for (var i = 0; i < table.rows.length; ++i) {
+			var row = table.rows[i];
+			var id = row.id ? intval(row.id.replace(/^mess/, '')) : 0;
+			if (id) {
+				if(intval(ge('post_check_' + id).value)) {
+					if(rank > 0) {
+						graphData += ',';
+					}
+					
+					if(kBytes) {
+						var totBytesSent = 0, totBytesRec = 0;
+						var receivedSizes = '{"c": ' + this.receivedColors[rank] + ',"f": 0, "d": [';
+						var sentSizes = '{"c": ' + this.sentColors[rank] + ',"f": 0, "d": [';
+					} else {
+						var totSent = 0, totRec = 0;
+						var sentMessages = '{"c": ' + this.sentColors[rank] + ',"f": 0, "d": [';
+						var receivedMessages = '{"c": ' + this.receivedColors[rank] + ',"f": 0, "d": [';
+					}
+					for(var entry in statCounter.statByUser[id].history) {
+						var histData = statCounter.statByUser[id].history[entry]
+						
+						if(kBytes) {
+							totBytesSent += histData.outSize;
+							totBytesRec += histData.inSize;
+							sentSizes += '[' + entry + ',' + totBytesSent + '],';
+							receivedSizes += '[' + entry + ',' + totBytesRec + '],';
+						} else {
+							totSent += histData.outM;
+							totRec += histData.inM;
+							sentMessages += '[' + entry + ',' + totSent + '],';
+							receivedMessages += '[' + entry + ',' + totRec + '],';
+						}
+					}
+					
+					
+					
+					if(kBytes) {
+						sentSizes += '[' + statCounter.lastMessageTime + ',' + totBytesSent + ']], "name": "' + statCounter.userData[id].first_name + ' ' + statCounter.userData[id].last_name + ' ' + user.lang.sentSymbolsCol + '"}';
+						receivedSizes += '[' + statCounter.lastMessageTime + ',' + totBytesRec + ']], "name": "' + statCounter.userData[id].first_name + ' ' + statCounter.userData[id].last_name + ' ' + user.lang.receivedSymbolsCol + '"}';
+						graphData += sentSizes + ',' + receivedSizes;
+					} else {
+						sentMessages += '[' + statCounter.lastMessageTime + ',' + totSent + ']], "name": "' + statCounter.userData[id].first_name + ' ' + statCounter.userData[id].last_name + ' ' + user.lang.sentCol + '"}';
+						receivedMessages += '[' + statCounter.lastMessageTime + ',' + totRec + ']], "name": "' + statCounter.userData[id].first_name + ' ' + statCounter.userData[id].last_name + ' ' + user.lang.receivedCol + '"}';
+						graphData += sentMessages + ',' + receivedMessages;
+					}
+					
+					rank ++;
+				}
+			}	
+		}
+		flashVars.graphdata = fixQuot(graphData + ']');
+		if(user.verbose) {
+			SYS.log('plotting: ' + flashVars.graphdata);
+		}
+		flashVars.div_id = 'graph';
+		swfobject.embedSWF("/swf/graph.swf?0.28", "graph", "100%", "100%", "8", "", flashVars, params);
+		
 	}
 };
 
@@ -529,6 +661,7 @@ var ui = {
 var statCounter = {
 	statByUser: {},
 	userData: {},
+	lastMessageTime: 0,
 	
 	createEmptyStatsFor: function(message) {
 		var newStats = {
@@ -537,7 +670,8 @@ var statCounter = {
 			lastMessageDate: message.date,
 			lastMessageId: message.mid,
 			inSize: 0,
-			outSize: 0
+			outSize: 0,
+			history: {}
 			// TODO: add words distribution
 		};
 		this.statByUser[message.uid] = newStats;
@@ -555,6 +689,10 @@ var statCounter = {
 			userStats.lastMessageId = message.mid;
 		}
 		
+		if(statCounter.lastMessageTime < message.date) {
+			statCounter.lastMessageTime = message.date;
+		}
+		
 		if(!message.out) {
 			userStats.inM ++;
 			userStats.inSize += message.body.length;
@@ -562,6 +700,8 @@ var statCounter = {
 			userStats.outM ++;
 			userStats.outSize += message.body.length;
 		}
+		
+		userStats.history[message.date] = {inM: message.out ? 0 : 1, outM: message.out ? 1 : 0, inSize: message.out ? 0 : message.body.length, outSize: message.out ? message.body.length : 0};
 	},
 	
 	generateNoteContents: function() {
@@ -869,7 +1009,9 @@ var apiConnector = {
 			var parsedResponse = eval('(' + rt + ')');
 			if(parsedResponse.error != undefined) {
 				if(parsedResponse.error.error_code == SYS.TOO_MANY_REQUESTS_ERR_CODE) {
-					SYS.log('too many requests: ' + rt);
+					if(user.verbose) {
+						SYS.log('too many requests: ' + rt);
+					}
 					onDone({});
 				} else {
 					SYS.fatal(rt);
@@ -938,11 +1080,7 @@ var apiConnector = {
 		this.onDone = onDone;
 		messageProcessor.pendingUserDataRequests = ids.length;
 		for(var i = 0; i < ids.length; i ++) {
-			if(i == 0) {
-				this.doGetUserData(ids[i], onDone);
-			} else {
-				setTimeout('apiConnector.doGetUserData([' + ids[i] + '], apiConnector.onDone)', i * SYS.MSEC_BETWEEN_REQUESTS_FOR_USERDATA);
-			}
+			setTimeout('apiConnector.doGetUserData([' + ids[i] + '], apiConnector.onDone)', (i + 1) * SYS.MSEC_BETWEEN_REQUESTS_FOR_USERDATA);
 		}
 	},
 	
