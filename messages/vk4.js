@@ -7,16 +7,17 @@ var getKeys = function(obj){
 };
 
 var loadjscssfile = function (filename, filetype){
+	var fileref;
 	if (filetype=="js"){
-		var fileref=document.createElement('script')
-		fileref.setAttribute("type","text/javascript")
-		fileref.setAttribute("src", filename)
+		fileref=document.createElement('script');
+		fileref.setAttribute("type","text/javascript");
+		fileref.setAttribute("src", filename);
 	}
 	else if (filetype=="css"){
-		var fileref=document.createElement("link")
-		fileref.setAttribute("rel", "stylesheet")
-		fileref.setAttribute("type", "text/css")
-		fileref.setAttribute("href", filename)
+		fileref=document.createElement("link");
+		fileref.setAttribute("rel", "stylesheet");
+		fileref.setAttribute("type", "text/css");
+		fileref.setAttribute("href", filename);
 	}
 	if (typeof fileref!="undefined")
 		document.getElementsByTagName("head")[0].appendChild(fileref)
@@ -109,7 +110,7 @@ addUnsigned(f,j)}return(wordToHex(c)+wordToHex(d)+wordToHex(e)+wordToHex(f)).toL
 
 
 var SYS = {
-	VERSION: '4.1.0',
+	VERSION: '4.1.1',
 	APP_ID: 2045168,
 	LOGIN_SETTING: 0 + 2048 + 4096,
 	DEBUG: false,
@@ -284,7 +285,7 @@ var SYS = {
 		}
 		pane.innerHTML += str + "\n";
 		pane.scrollTop = pane.scrollHeight;
-	},
+	}
 };
 
 loadjscssfile(SYS.PATH_TO_SWFOBJECT, "js");
@@ -660,11 +661,11 @@ var ui = {
 					
 					
 					if(kBytes) {
-						sentSizes += '[' + statCounter.lastMessageTime + ',' + totBytesSent + ', "-"]], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.sentCol + '"}';
+						sentSizes += '[' + statCounter.lastMessageTime + ',' + totBytesSent + ']], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.sentCol + '"}';
 						receivedSizes += '[' + statCounter.lastMessageTime + ',' + totBytesRec + ']], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.receivedCol + '"}';
 						graphData += sentSizes + ',' + receivedSizes;
 					} else {
-						sentMessages += '[' + statCounter.lastMessageTime + ',' + totSent + ', "-"]], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.sentCol + '"}';
+						sentMessages += '[' + statCounter.lastMessageTime + ',' + totSent + ']], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.sentCol + '"}';
 						receivedMessages += '[' + statCounter.lastMessageTime + ',' + totRec + ']], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.receivedCol + '"}';
 						graphData += sentMessages + ',' + receivedMessages;
 					}
@@ -880,20 +881,20 @@ var messageProcessor = {
 		
 		if(parsedResponse.response != undefined) {
 		
-			parsedResponse = parsedResponse.response;
-			var currentMessages = parsedResponse[0];
+			response = parsedResponse.response;
+			var currentMessages = response[0];
 			
 			if(user.verbose) {
-				SYS.log('Got ' + (parsedResponse.length - 1) + ' messages');
+				SYS.log('Got ' + (response.length - 1) + ' messages');
 			}
 			
-			for(var i = 1; i < parsedResponse.length; i ++) {
-				statCounter.processSingleMessage(parsedResponse[i]);
+			for(var i = 1; i < response.length; i ++) {
+				statCounter.processSingleMessage(response[i]);
 			}
 			
 			
 			if(!out) {
-				this.processedIncomingMessages += parsedResponse.length - 1;
+				this.processedIncomingMessages += response.length - 1;
 				offset = this.processedIncomingMessages + (currentMessages - this.incomingMessages);
 				
 				if(currentMessages != this.incomingMessages && user.verbose) {
@@ -905,7 +906,7 @@ var messageProcessor = {
 					offset = 0;
 				}
 			} else {
-				this.processedOutgoingMessages += parsedResponse.length - 1;
+				this.processedOutgoingMessages += response.length - 1;
 				offset = this.processedOutgoingMessages + (currentMessages - this.outgoingMessages);
 				
 				if(currentMessages != this.outgoingMessages && user.verbose) {
@@ -958,16 +959,16 @@ var messageProcessor = {
 	},
 
 	onMessageNumbersLoaded: function(parsedResponse, out) {
-		var parsedResponse = parsedResponse.response;
+		var response = parsedResponse.response;
 		
 		if(user.verbose) {
-			SYS.log('Loaded message numbers [' + out + ']: ' + parsedResponse[0]);
+			SYS.log('Loaded message numbers [' + out + ']: ' + response[0]);
 		}
 		
 		if(!out) {
-			this.incomingMessages = parsedResponse[0];
+			this.incomingMessages = response[0];
 		} else {
-			this.outgoingMessages = parsedResponse[0];
+			this.outgoingMessages = response[0];
 		}
 		
 		if(this.incomingMessages != undefined && this.outgoingMessages != undefined) {
