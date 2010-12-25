@@ -816,7 +816,7 @@ var statCounter = {
 	
 	exportToNote: function() {
 		apiConnector.createNote(user.lang.appName, this.generateNoteContents(), function(ao, rt) {
-			parsedResponse = eval('(' + rt + ')');
+			var parsedResponse = eval('(' + rt + ')');
 			if(parsedResponse.response == undefined) {
 				SYS.log('Note creationg failed!' + rt);
 				ui.onNoteNotCreated();
@@ -839,7 +839,7 @@ var messageProcessor = {
 	processedOutgoingMessages: 0,
 	
 	onUserProfilesLoaded: function(response) {
-		parsedResponse = eval('(' + response + ')');
+		var parsedResponse = eval('(' + response + ')');
 		if(parsedResponse.response == undefined) {
 			SYS.fatal(response);
 		}
@@ -881,7 +881,7 @@ var messageProcessor = {
 		
 		if(parsedResponse.response != undefined) {
 		
-			response = parsedResponse.response;
+			var response = parsedResponse.response;
 			var currentMessages = response[0];
 			
 			if(user.verbose) {
