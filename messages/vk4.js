@@ -110,7 +110,7 @@ addUnsigned(f,j)}return(wordToHex(c)+wordToHex(d)+wordToHex(e)+wordToHex(f)).toL
 
 
 var SYS = {
-	VERSION: '4.1.1',
+	VERSION: '4.1.2',
 	APP_ID: 2045168,
 	LOGIN_SETTING: 0 + 2048 + 4096,
 	DEBUG: false,
