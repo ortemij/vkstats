@@ -648,12 +648,12 @@ var ui = {
 						if(kBytes) {
 							totBytesSent += histData.outSize;
 							totBytesRec += histData.inSize;
-							sentSizes += '[' + entry + ',' + totBytesSent + ', "-"],';
+							sentSizes += '[' + entry + ',' + totBytesSent + '],';
 							receivedSizes += '[' + entry + ',' + totBytesRec + '],';
 						} else {
 							totSent += histData.outM;
 							totRec += histData.inM;
-							sentMessages += '[' + entry + ',' + totSent + ', "-"],';
+							sentMessages += '[' + entry + ',' + totSent + '],';
 							receivedMessages += '[' + entry + ',' + totRec + '],';
 						}
 					}
