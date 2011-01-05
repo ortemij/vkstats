@@ -110,7 +110,7 @@ addUnsigned(f,j)}return(wordToHex(c)+wordToHex(d)+wordToHex(e)+wordToHex(f)).toL
 
 
 var SYS = {
-	VERSION: '4.1.2',
+	VERSION: '4.1.3',
 	APP_ID: 2045168,
 	LOGIN_SETTING: 0 + 2048 + 4096,
 	DEBUG: false,
@@ -415,7 +415,7 @@ var ui = {
 	
 	displayStats: function(stats, userData, sortBy) {
 	
-		messagesChecked = 0; actionsShown = false;
+		messagesChecked = 0;actionsShown = false;
 	
 		this.clearContent();
 	
@@ -433,7 +433,7 @@ var ui = {
 		}
 		
 		var cPane = ce('div', {className: 'bar clearFix actionBar', innerHTML:
-			user.lang.thankYou + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010</div>'
+			user.lang.thankYou + (apiConnector.failed > 0 ? ' ' + user.lang.warning + ': ' + apiConnector.failed : '') + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010</div>'
 		});
 		var mActions = ce('div', {id: "message_actions", innerHTML: user.lang.withSelected + ': '}, {visibility: 'hidden'});
 		
@@ -1001,6 +1001,7 @@ var apiConnector = {
 	API_VERSION: '3.0',
 	LOGON_FAIL_STRING: 'login_fail',
 	LOGON_SUCCESS_STRING: 'login_success',
+	failed: 0,
 
 	logon: function(appId, settings) {
 	
@@ -1067,8 +1068,17 @@ var apiConnector = {
 		
 		var ajax = new Ajax();
 		ajax.onDone = function(ao,rt) {
-			var parsedResponse = eval('(' + rt + ')');
-			if(parsedResponse.error != undefined) {
+			var parsedResponse;
+			try {
+				parsedResponse = eval('(' + rt + ')');
+			} catch (e) {
+				SYS.log(e);
+			}
+
+			if (parsedResponse == undefined) {
+				apiConnector.failed += count;
+				onDone({});
+			} else if (parsedResponse.error != undefined) {
 				if(parsedResponse.error.error_code == SYS.TOO_MANY_REQUESTS_ERR_CODE) {
 					if(user.verbose) {
 						SYS.log('too many requests: ' + rt);
