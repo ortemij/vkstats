@@ -110,7 +110,7 @@ addUnsigned(f,j)}return(wordToHex(c)+wordToHex(d)+wordToHex(e)+wordToHex(f)).toL
 
 
 var SYS = {
-	VERSION: '4.1.3',
+	VERSION: '4.2',
 	APP_ID: 2045168,
 	LOGIN_SETTING: 0 + 2048 + 4096,
 	DEBUG: false,
@@ -168,7 +168,8 @@ var SYS = {
 				plotMessagesGraph: 'построить график по числу сообщений',
 				wantToPlotGraphs: 'Я захочу строить графики общения от времени',
 				totalFirstName: 'Общая', 
-				totalLastName: 'статистика'
+				totalLastName: 'статистика',
+				sortByKBytes: 'Сортировать по килобайтам'
 			}
 		},
 		1: {
@@ -215,7 +216,8 @@ var SYS = {
 				plotMessagesGraph: 'побудувати графік за кількістю сообщенійь',
 				wantToPlotGraphs: 'Я захочу будувати гарні графіки',
 				totalFirstName: 'Загальна', 
-				totalLastName: 'статистика'
+				totalLastName: 'статистика',
+				sortByKBytes: 'Cортувати по кілобайтам'
 			}
 		},
 		3: {
@@ -262,7 +264,8 @@ var SYS = {
 				plotMessagesGraph: 'plot message number graph',
 				wantToPlotGraphs: 'I\'d like to plot fancy graphs',
 				totalFirstName: 'Overall', 
-				totalLastName: 'stats'
+				totalLastName: 'stats',
+				sortByKBytes: 'Sort by kilobytes'
 			}
 		}
 	},
@@ -295,7 +298,8 @@ var user = {
 	verbose: false,
 	kbytes: true,
 	friendsOnly: false,
-	plotGraphs: true
+	plotGraphs: true,
+	sortByKBytes: false
 };
 
 
@@ -542,6 +546,7 @@ var ui = {
 		
 		html = '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_verbose" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_kbytes" /></div>';
+		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_sort_kbytes" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_friends_only" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_fancy_graphs" /></div>';
 		
@@ -557,6 +562,12 @@ var ui = {
 			label: user.lang.kbytes,
 			checked: 1,
 			onChange: function() {user.kbytes = !user.kbytes;}
+		});
+
+		new Checkbox(ge('param_sort_kbytes'), {
+			label: user.lang.sortByKBytes,
+			checked: 0,
+			onChange: function() {user.sortByKBytes = !user.sortByKBytes;}
 		});
 		
 		new Checkbox(ge('param_friends_only'), {
@@ -858,7 +869,7 @@ var messageProcessor = {
 		
 		if(this.pendingUserDataRequests <= 0) {
 			ui.setHeader(user.lang.done + '!');
-			ui.displayStats(statCounter.statByUser, statCounter.userData, user.kbytes ? 'tot-size' : 'tot');
+			ui.displayStats(statCounter.statByUser, statCounter.userData, user.kbytes && user.sortByKBytes ? 'tot-size' : 'tot');
 		}
 		
 	},
@@ -879,7 +890,31 @@ var messageProcessor = {
 	
 		var offset = 0;
 		
-		if(parsedResponse.response != undefined) {
+		if (parsedResponse == undefined) {
+
+			if (!out) {
+				this.processedIncomingMessages += SYS.MESSAGES_PER_REQUEST;
+				offset = this.offset + SYS.MESSAGES_PER_REQUEST;
+
+				SYS.log('Skipping ' + SYS.MESSAGES_PER_REQUEST + ' messages...');
+
+//				if (offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
+//					out = 1;
+//					offset = 0;
+//				}
+			} else {
+				this.processedOutgoingMessages += SYS.MESSAGES_PER_REQUEST;
+				offset = this.offset + SYS.MESSAGES_PER_REQUEST;
+
+				SYS.log('Skipping ' + SYS.MESSAGES_PER_REQUEST + ' messages...');
+
+//				if (offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
+//					out = 1;
+//					offset = 0;
+//				}
+			}
+
+		} else if (parsedResponse.response != undefined) {
 		
 			var response = parsedResponse.response;
 			var currentMessages = response[0];
@@ -1077,7 +1112,7 @@ var apiConnector = {
 
 			if (parsedResponse == undefined) {
 				apiConnector.failed += count;
-				onDone({});
+				onDone();
 			} else if (parsedResponse.error != undefined) {
 				if(parsedResponse.error.error_code == SYS.TOO_MANY_REQUESTS_ERR_CODE) {
 					if(user.verbose) {
