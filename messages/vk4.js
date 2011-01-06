@@ -437,7 +437,7 @@ var ui = {
 		}
 		
 		var cPane = ce('div', {className: 'bar clearFix actionBar', innerHTML:
-			user.lang.thankYou + (apiConnector.failed > 0 ? ' ' + user.lang.warning + ': ' + apiConnector.failed : '') + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010</div>'
+			user.lang.thankYou + (messageProcessor.failed > 0 ? ' ' + user.lang.warning + ': ' + messageProcessor.failed : '') + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010</div>'
 		});
 		var mActions = ce('div', {id: "message_actions", innerHTML: user.lang.withSelected + ': '}, {visibility: 'hidden'});
 		
@@ -848,6 +848,7 @@ var messageProcessor = {
 	processedIncomingMessages: 0,
 	outgoingMessages: undefined,
 	processedOutgoingMessages: 0,
+	failed: 0,
 	
 	onUserProfilesLoaded: function(response) {
 		var parsedResponse = eval('(' + response + ')');
@@ -891,27 +892,16 @@ var messageProcessor = {
 		var offset = 0;
 		
 		if (parsedResponse == undefined) {
+		
+			this.failed += SYS.MESSAGES_PER_REQUEST;
+			SYS.log('Skipping ' + SYS.MESSAGES_PER_REQUEST + ' messages...');
 
 			if (!out) {
 				this.processedIncomingMessages += SYS.MESSAGES_PER_REQUEST;
 				offset = this.offset + SYS.MESSAGES_PER_REQUEST;
-
-				SYS.log('Skipping ' + SYS.MESSAGES_PER_REQUEST + ' messages...');
-
-//				if (offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
-//					out = 1;
-//					offset = 0;
-//				}
 			} else {
 				this.processedOutgoingMessages += SYS.MESSAGES_PER_REQUEST;
 				offset = this.offset + SYS.MESSAGES_PER_REQUEST;
-
-				SYS.log('Skipping ' + SYS.MESSAGES_PER_REQUEST + ' messages...');
-
-//				if (offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
-//					out = 1;
-//					offset = 0;
-//				}
 			}
 
 		} else if (parsedResponse.response != undefined) {
@@ -1036,7 +1026,6 @@ var apiConnector = {
 	API_VERSION: '3.0',
 	LOGON_FAIL_STRING: 'login_fail',
 	LOGON_SUCCESS_STRING: 'login_success',
-	failed: 0,
 
 	logon: function(appId, settings) {
 	
@@ -1107,11 +1096,10 @@ var apiConnector = {
 			try {
 				parsedResponse = eval('(' + rt + ')');
 			} catch (e) {
-				SYS.log(e);
+				SYS.log("Failed to parse JSON response: [" + e + "] " + rt);
 			}
 
 			if (parsedResponse == undefined) {
-				apiConnector.failed += count;
 				onDone();
 			} else if (parsedResponse.error != undefined) {
 				if(parsedResponse.error.error_code == SYS.TOO_MANY_REQUESTS_ERR_CODE) {
