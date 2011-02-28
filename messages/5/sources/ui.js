@@ -237,9 +237,9 @@ var ui = {
 		
 		var mbox = new MessageBox({title: user.lang.settingsText});
 		
-		mbox.addButton({label: user.lang.startButton, onClick: function() {mbox.hide();messageProcessor.start();}});
+		mbox.addButton({label: user.lang.startButton, onClick: function() {mbox.hide();messageProcessor.start()}});
 		
-		html = '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_verbose" /></div>';
+		var html = '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_verbose" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_kbytes" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_sort_kbytes" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_friends_only" /></div>';

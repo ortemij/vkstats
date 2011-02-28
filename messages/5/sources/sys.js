@@ -1,5 +1,5 @@
 var SYS = {
-	VERSION: '5.0',
+	VERSION: '4.2.1',
 	APP_ID: 2045168,
 	LOGIN_SETTING: 0 + 2048 + 4096,
 	DEBUG: false,
@@ -11,7 +11,8 @@ var SYS = {
 	LINK_TO_CLUB: '/club21792535',
 	TOO_MANY_REQUESTS_ERR_CODE: 6,
 	MAX_USERS_AT_ONE_GRAPH: 3,
-	PATH_TO_SWFOBJECT: 'http://vkontakte.ru/js/lib/swfobject2.js',
+	CSS_FILES_TO_LOAD: ['http://vk.com/css/mail2.css', 'http://vk.com/css/dialog2.css', 'http://vk.com/css/pages.css', 'http://vk.com/css/ui_controls.css'],
+	JS_FILES_TO_LOAD: ['http://vk.com/js/lib/swfobject2.js', 'http://vk.com/js/mail.js', 'http://vk.com/js/lib/ui_controls.js'/*, 'http://vk.com/js/common.js'*/],
 	LANGUAGES: {
 		0: {
 			name: 'russian',
@@ -52,7 +53,6 @@ var SYS = {
 				noteSuccess: 'Заметка успешно создана',
 				noteFailure: 'Не удалось создать заметку. Попробуйте ещё раз позднее.',
 				seeNote: 'Посмотреть',
-				wrongPage: 'Чтобы использовать скрипт, вы должны находиться в "Моих Сообщениях"!',
 				plotKbytesGraph: 'построить график по числу символов',
 				plotMessagesGraph: 'построить график по числу сообщений',
 				wantToPlotGraphs: 'Я захочу строить графики общения от времени',
@@ -100,7 +100,6 @@ var SYS = {
 				noteSuccess: 'Замітка успішно створена',
 				noteFailure: 'Не вдалося створити замітку. Спробуйте ще раз пізніше.',
 				seeNote: 'Подивитися',
-				wrongPage: 'Щоб запустити скрипт, ви повинні знаходитися в "Моїх повідомленнях"',
 				plotKbytesGraph: 'побудувати графік за кількістю символів',
 				plotMessagesGraph: 'побудувати графік за кількістю сообщенійь',
 				wantToPlotGraphs: 'Я захочу будувати гарні графіки',
@@ -148,7 +147,6 @@ var SYS = {
 				noteSuccess: 'Note created successfully',
 				noteFailure: 'Failed to create a note. Please try again later',
 				seeNote: 'See it',
-				wrongPage: 'You need to be at "My Messages" page for this script to run!',
 				plotKbytesGraph: 'plot symbol number graph',
 				plotMessagesGraph: 'plot message number graph',
 				wantToPlotGraphs: 'I\'d like to plot fancy graphs',
@@ -179,8 +177,6 @@ var SYS = {
 		pane.scrollTop = pane.scrollHeight;
 	}
 };
-
-loadjscssfile(SYS.PATH_TO_SWFOBJECT, "js");
 
 var user = {
 	lang: SYS.LANGUAGES[langConfig.id] == undefined ? SYS.LANGUAGES[3].strings : SYS.LANGUAGES[langConfig.id].strings,

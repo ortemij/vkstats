@@ -1,5 +1,15 @@
-if(/http:\/\/((vk\.com)|(vkontakte.ru))\/mail.php.*/.test(location.href)) {
+var start = function() {
 	apiConnector.logon(SYS.APP_ID, SYS.LOGIN_SETTING);
-} else {
-	alert(user.lang.wrongPage);
 }
+
+var allFiles = [];
+
+for(var i in SYS.JS_FILES_TO_LOAD) {
+	allFiles.push(SYS.JS_FILES_TO_LOAD[i]);
+}
+
+for(var i in SYS.CSS_FILES_TO_LOAD) {
+	allFiles.push(SYS.CSS_FILES_TO_LOAD[i]);
+}
+
+LazyLoader(allFiles, start);
