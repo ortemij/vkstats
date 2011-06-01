@@ -11,8 +11,7 @@ var SYS = {
 	LINK_TO_CLUB: '/club21792535',
 	TOO_MANY_REQUESTS_ERR_CODE: 6,
 	MAX_USERS_AT_ONE_GRAPH: 3,
-	CSS_FILES_TO_LOAD: ['http://vk.com/css/mail2.css', 'http://vk.com/css/dialog2.css', 'http://vk.com/css/pages.css', 'http://vk.com/css/ui_controls.css'],
-	JS_FILES_TO_LOAD: ['http://vk.com/js/lib/swfobject2.js', 'http://vk.com/js/mail.js', 'http://vk.com/js/lib/ui_controls.js'/*, 'http://vk.com/js/common.js'*/],
+	FILES_TO_LOAD: ['mail.css','mail.js','ui_controls.js','ui_controls.css'],
 	LANGUAGES: {
 		0: {
 			name: 'russian',
