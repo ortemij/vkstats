@@ -1,79 +1,1282 @@
-var getKeys=function(a){var b=[],c;for(c in a)b.push(c);return b},loadjscssfile=function(a,b){var c;if(b=="js"){c=document.createElement("script");c.setAttribute("type","text/javascript");c.setAttribute("src",a)}else if(b=="css"){c=document.createElement("link");c.setAttribute("rel","stylesheet");c.setAttribute("type","text/css");c.setAttribute("href",a)}if(typeof c!="undefined"){document.getElementsByTagName("head")[0].appendChild(c);return c}},LazyLoader=function(a,b){function c(l){l=l.toLowerCase();
-var m=l.indexOf("js");l=l.indexOf("css");if(m==-1&&l==-1)return false;return m>l?"js":"css"}function d(l){var m=document.createElement("link");m.href=l;m.rel="stylesheet";m.type="text/css";m.onload=e;m.onreadystatechange=function(){if(this.readyState=="loaded"||this.readyState=="complete")e()};document.getElementsByTagName("head")[0].appendChild(m)}function j(l){try{if(document.styleSheets[l].cssRules)e();else document.styleSheets[l].rules&&document.styleSheets[l].rules.length?e():setTimeout(function(){j(l)},
-250)}catch(m){setTimeout(function(){j(l)},250)}}function k(l){var m=document.createElement("script");m.type="text/javascript";m.src=l;m.onload=e;document.getElementsByTagName("head")[0].appendChild(m)}function e(){--g==0&&b()}var g=0,f,h=document.styleSheets.length-1;for(index in a){g++;f=a[index];if(c(f)=="css"){d(f);h++;!window.opera&&navigator.userAgent.indexOf("MSIE")==-1&&j(h)}c(f)=="js"&&k(f)}},fixQuot=function(a){return browser.msie?a.replace(/\"/g,"&quot;"):a},nKeys=function(a){var b=0,c;
-for(c in a)b++;return b},splitArrayToSubArrays=function(a,b){for(var c=[],d=0;d<a.length/b;d++)c.push(a.slice(b*d,b*(d+1)));return c},formatDate=function(a,b){var c=a.getFullYear(),d=a.getMonth()+1;if(d<10)d="0"+d;var j=a.getDate();if(j<10)j="0"+j;var k=a.getHours();if(k<10)k="0"+k;var e=a.getMinutes();if(e<10)e="0"+e;var g=a.getSeconds();if(g<10)g="0"+g;if(b){var f=mod(a.getTime(),1E3);if(f<100)f="0"+f;if(intval(f)<10)f="0"+f;g=g+"."+f}return c+"-"+d+"-"+j+" "+k+":"+e+":"+g},insertAfter=function(a,
-b){a.parentNode.insertBefore(b,a.nextSibling)},mod=function(a,b){return a%b},myCheckChange=function(a,b){checkChange(a,b);if(messagesChecked>SYS.MAX_USERS_AT_ONE_GRAPH){if(user.plotGraphs)ge("plot_graphs_links").style.visibility="hidden"}else if(user.plotGraphs)ge("plot_graphs_links").style.visibility=""},rotateLeft=function(a,b){return a<<b|a>>>32-b},addUnsigned=function(a,b){var c,d,j,k,e;j=a&2147483648;k=b&2147483648;c=a&1073741824;d=b&1073741824;e=(a&1073741823)+(b&1073741823);if(c&d)return e^
-2147483648^j^k;return c|d?e&1073741824?e^3221225472^j^k:e^1073741824^j^k:e^j^k},F=function(a,b,c){return a&b|~a&c},G=function(a,b,c){return a&c|b&~c},H=function(a,b,c){return a^b^c},I=function(a,b,c){return b^(a|~c)},FF=function(a,b,c,d,j,k,e){a=addUnsigned(a,addUnsigned(addUnsigned(F(b,c,d),j),e));return addUnsigned(rotateLeft(a,k),b)},GG=function(a,b,c,d,j,k,e){a=addUnsigned(a,addUnsigned(addUnsigned(G(b,c,d),j),e));return addUnsigned(rotateLeft(a,k),b)},HH=function(a,b,c,d,j,k,e){a=addUnsigned(a,
-addUnsigned(addUnsigned(H(b,c,d),j),e));return addUnsigned(rotateLeft(a,k),b)},II=function(a,b,c,d,j,k,e){a=addUnsigned(a,addUnsigned(addUnsigned(I(b,c,d),j),e));return addUnsigned(rotateLeft(a,k),b)},convertToWordArray=function(a){var b,c=a.length;b=c+8;for(var d=((b-mod(b,64))/64+1)*16,j=Array(d-1),k=0,e=0;e<c;){b=(e-mod(e,4))/4;k=mod(e,4)*8;j[b]|=a.charCodeAt(e)<<k;e++}b=(e-mod(e,4))/4;k=mod(e,4)*8;j[b]|=128<<k;j[d-2]=c<<3;j[d-1]=c>>>29;return j},wordToHex=function(a){var b="",c="",d;for(d=0;d<=
-3;d++){c=a>>>d*8&255;c="0"+c.toString(16);b+=c.substr(c.length-2,2)}return b},uTF8Encode=function(a){a=a.replace(/\x0d\x0a/g,"\n");for(var b="",c=0;c<a.length;c++){var d=a.charCodeAt(c);if(d<128)b+=String.fromCharCode(d);else{if(d>127&&d<2048)b+=String.fromCharCode(d>>6|192);else{b+=String.fromCharCode(d>>12|224);b+=String.fromCharCode(d>>6&63|128)}b+=String.fromCharCode(d&63|128)}}return b},md5=function(a){var b=[],c,d,j,k,e,g,f,h;a=uTF8Encode(a);b=convertToWordArray(a);e=1732584193;g=4023233417;
-f=2562383102;h=271733878;for(a=0;a<b.length;a+=16){c=e;d=g;j=f;k=h;e=FF(e,g,f,h,b[a+0],7,3614090360);h=FF(h,e,g,f,b[a+1],12,3905402710);f=FF(f,h,e,g,b[a+2],17,606105819);g=FF(g,f,h,e,b[a+3],22,3250441966);e=FF(e,g,f,h,b[a+4],7,4118548399);h=FF(h,e,g,f,b[a+5],12,1200080426);f=FF(f,h,e,g,b[a+6],17,2821735955);g=FF(g,f,h,e,b[a+7],22,4249261313);e=FF(e,g,f,h,b[a+8],7,1770035416);h=FF(h,e,g,f,b[a+9],12,2336552879);f=FF(f,h,e,g,b[a+10],17,4294925233);g=FF(g,f,h,e,b[a+11],22,2304563134);e=FF(e,g,f,h,b[a+
-12],7,1804603682);h=FF(h,e,g,f,b[a+13],12,4254626195);f=FF(f,h,e,g,b[a+14],17,2792965006);g=FF(g,f,h,e,b[a+15],22,1236535329);e=GG(e,g,f,h,b[a+1],5,4129170786);h=GG(h,e,g,f,b[a+6],9,3225465664);f=GG(f,h,e,g,b[a+11],14,643717713);g=GG(g,f,h,e,b[a+0],20,3921069994);e=GG(e,g,f,h,b[a+5],5,3593408605);h=GG(h,e,g,f,b[a+10],9,38016083);f=GG(f,h,e,g,b[a+15],14,3634488961);g=GG(g,f,h,e,b[a+4],20,3889429448);e=GG(e,g,f,h,b[a+9],5,568446438);h=GG(h,e,g,f,b[a+14],9,3275163606);f=GG(f,h,e,g,b[a+3],14,4107603335);
-g=GG(g,f,h,e,b[a+8],20,1163531501);e=GG(e,g,f,h,b[a+13],5,2850285829);h=GG(h,e,g,f,b[a+2],9,4243563512);f=GG(f,h,e,g,b[a+7],14,1735328473);g=GG(g,f,h,e,b[a+12],20,2368359562);e=HH(e,g,f,h,b[a+5],4,4294588738);h=HH(h,e,g,f,b[a+8],11,2272392833);f=HH(f,h,e,g,b[a+11],16,1839030562);g=HH(g,f,h,e,b[a+14],23,4259657740);e=HH(e,g,f,h,b[a+1],4,2763975236);h=HH(h,e,g,f,b[a+4],11,1272893353);f=HH(f,h,e,g,b[a+7],16,4139469664);g=HH(g,f,h,e,b[a+10],23,3200236656);e=HH(e,g,f,h,b[a+13],4,681279174);h=HH(h,e,g,
-f,b[a+0],11,3936430074);f=HH(f,h,e,g,b[a+3],16,3572445317);g=HH(g,f,h,e,b[a+6],23,76029189);e=HH(e,g,f,h,b[a+9],4,3654602809);h=HH(h,e,g,f,b[a+12],11,3873151461);f=HH(f,h,e,g,b[a+15],16,530742520);g=HH(g,f,h,e,b[a+2],23,3299628645);e=II(e,g,f,h,b[a+0],6,4096336452);h=II(h,e,g,f,b[a+7],10,1126891415);f=II(f,h,e,g,b[a+14],15,2878612391);g=II(g,f,h,e,b[a+5],21,4237533241);e=II(e,g,f,h,b[a+12],6,1700485571);h=II(h,e,g,f,b[a+3],10,2399980690);f=II(f,h,e,g,b[a+10],15,4293915773);g=II(g,f,h,e,b[a+1],21,
-2240044497);e=II(e,g,f,h,b[a+8],6,1873313359);h=II(h,e,g,f,b[a+15],10,4264355552);f=II(f,h,e,g,b[a+6],15,2734768916);g=II(g,f,h,e,b[a+13],21,1309151649);e=II(e,g,f,h,b[a+4],6,4149444226);h=II(h,e,g,f,b[a+11],10,3174756917);f=II(f,h,e,g,b[a+2],15,718787259);g=II(g,f,h,e,b[a+9],21,3951481745);e=addUnsigned(e,c);g=addUnsigned(g,d);f=addUnsigned(f,j);h=addUnsigned(h,k)}return(wordToHex(e)+wordToHex(g)+wordToHex(f)+wordToHex(h)).toLowerCase()},SYS={VERSION:"4.2.1",APP_ID:2045168,LOGIN_SETTING:6144,DEBUG:false,
-MESSAGES_TO_PROCESS_IN_DEBUG_MODE:400,MESSAGES_PER_REQUEST:100,MSEC_BETWEEN_REQUESTS:333,MSEC_BETWEEN_REQUESTS_FOR_USERDATA:1E3,MAX_USERS_PER_REQUEST:1E3,LINK_TO_CLUB:"/club21792535",TOO_MANY_REQUESTS_ERR_CODE:6,MAX_USERS_AT_ONE_GRAPH:3,CSS_FILES_TO_LOAD:["http://vk.com/css/mail2.css","http://vk.com/css/dialog2.css","http://vk.com/css/pages.css","http://vk.com/css/ui_controls.css"],JS_FILES_TO_LOAD:["http://vk.com/js/lib/swfobject2.js","http://vk.com/js/mail.js","http://vk.com/js/lib/ui_controls.js"],
-LANGUAGES:{0:{name:"russian",strings:{authorizing:"\u0410\u0432\u0442\u043e\u0440\u0438\u0437\u0430\u0446\u0438\u044f",authorized:"\u0410\u0432\u0442\u043e\u0440\u0438\u0437\u0430\u0446\u0438\u044f \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0430",loadingMessageNumbers:"\u041e\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0435 \u0447\u0438\u0441\u043b\u0430 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0439",fatal:"\u041a\u0440\u0438\u0442\u0438\u0447\u0435\u0441\u043a\u0430\u044f \u043e\u0448\u0438\u0431\u043a\u0430. \u041f\u043e\u0436\u0430\u043b\u0443\u0439\u0441\u0442\u0430, \u0441\u043e\u043e\u0431\u0449\u0438\u0442\u0435 \u043f\u0440\u0438\u0432\u0435\u0434\u0451\u043d\u043d\u044b\u0435 \u043d\u0438\u0436\u0435 \u0434\u0430\u043d\u043d\u044b\u0435 \u0440\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u0447\u0438\u043a\u0443.",
-appName:"\u0421\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0430 \u043b\u0438\u0447\u043d\u043e\u0439 \u043f\u0435\u0440\u0435\u043f\u0438\u0441\u043a\u0438",nameCol:"\u0418\u043c\u044f",kbytes:"\u0423\u0447\u0438\u0442\u044b\u0432\u0430\u0442\u044c \u0440\u0430\u0437\u043c\u0435\u0440 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0439",settingsText:"\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0436\u0435\u043b\u0430\u0435\u043c\u044b\u0435 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u044b",
-startButton:"\u041f\u043e\u0435\u0445\u0430\u043b\u0438!",verbose:"\u041b\u043e\u0433\u0433\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432\u0441\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044f",gettingNames:"\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u0438\u043c\u0451\u043d \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439",numberOfMessagesCol:"\u0412\u0441\u0435\u0433\u043e \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0439",sentCol:"\u041e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u043e",
-receivedCol:"\u041f\u043e\u043b\u0443\u0447\u0435\u043d\u043e",symbolsCol:"\u0412\u0441\u0435\u0433\u043e \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432",sentSymbolsCol:"\u041e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u043e \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432",receivedSymbolsCol:"\u041f\u043e\u043b\u0443\u0447\u0435\u043d\u043e \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432",lastMsgCol:"\u041f\u043e\u0441\u043b\u0435\u0434\u043d\u0435\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435",
-processingMessages:"\u041e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0430 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0439",done:"\u041e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0430",messagesProcessed:"\u041e\u0431\u0440\u0430\u0431\u043e\u0442\u0430\u043d\u043e \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0439",incoming:"\u0432\u0445\u043e\u0434\u044f\u0449\u0438\u0445",outgoing:"\u0438\u0441\u0445\u043e\u0434\u044f\u0449\u0438\u0445",
-dayWithMostMessages:"\u0411\u043e\u043b\u044c\u0448\u0435 \u0432\u0441\u0435\u0433\u043e \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0439 \u0431\u044b\u043b\u043e",timeWithMostMessages:"\u0411\u043e\u043b\u044c\u0448\u0435 \u0432\u0441\u0435\u0433\u043e \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0439",thankYou:"\u0421\u043f\u0430\u0441\u0438\u0431\u043e, \u0447\u0442\u043e \u0434\u043e\u0436\u0434\u0430\u043b\u0438\u0441\u044c, \u043d\u0430\u0434\u0435\u0435\u043c\u0441\u044f, \u043e\u043d\u043e \u0442\u043e\u0433\u043e \u0441\u0442\u043e\u0438\u043b\u043e!",
-exportByTime:"\u042d\u043a\u0441\u043f\u043e\u0440\u0442 \u0441\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0438 \u043f\u043e \u0432\u0440\u0435\u043c\u0435\u043d\u0438",exportByMessages:"\u042d\u043a\u0441\u043f\u043e\u0440\u0442 \u0441\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0438 \u043f\u043e \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f\u043c",warning:"\u0412\u043d\u0438\u043c\u0430\u043d\u0438\u0435! \u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u0431\u0440\u0430\u0431\u043e\u0442\u0430\u0442\u044c \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0439",
-friendsOnly:"\u0423\u0447\u0438\u0442\u044b\u0432\u0430\u0442\u044c \u0442\u043e\u043b\u044c\u043a\u043e \u0434\u0440\u0443\u0437\u0435\u0439",withSelected:"\u0412\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0435",exportToNote:"\u044d\u043a\u0441\u043f\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0437\u0430\u043c\u0435\u0442\u043a\u0443",ourGroup:"\u041d\u0430\u0448\u0430 \u0433\u0440\u0443\u043f\u043f\u0430",noteSuccess:"\u0417\u0430\u043c\u0435\u0442\u043a\u0430 \u0443\u0441\u043f\u0435\u0448\u043d\u043e \u0441\u043e\u0437\u0434\u0430\u043d\u0430",
-noteFailure:"\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0441\u043e\u0437\u0434\u0430\u0442\u044c \u0437\u0430\u043c\u0435\u0442\u043a\u0443. \u041f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0435\u0449\u0451 \u0440\u0430\u0437 \u043f\u043e\u0437\u0434\u043d\u0435\u0435.",seeNote:"\u041f\u043e\u0441\u043c\u043e\u0442\u0440\u0435\u0442\u044c",plotKbytesGraph:"\u043f\u043e\u0441\u0442\u0440\u043e\u0438\u0442\u044c \u0433\u0440\u0430\u0444\u0438\u043a \u043f\u043e \u0447\u0438\u0441\u043b\u0443 \u0441\u0438\u043c\u0432\u043e\u043b\u043e\u0432",
-plotMessagesGraph:"\u043f\u043e\u0441\u0442\u0440\u043e\u0438\u0442\u044c \u0433\u0440\u0430\u0444\u0438\u043a \u043f\u043e \u0447\u0438\u0441\u043b\u0443 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0439",wantToPlotGraphs:"\u042f \u0437\u0430\u0445\u043e\u0447\u0443 \u0441\u0442\u0440\u043e\u0438\u0442\u044c \u0433\u0440\u0430\u0444\u0438\u043a\u0438 \u043e\u0431\u0449\u0435\u043d\u0438\u044f \u043e\u0442 \u0432\u0440\u0435\u043c\u0435\u043d\u0438",totalFirstName:"\u041e\u0431\u0449\u0430\u044f",
-totalLastName:"\u0441\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0430",sortByKBytes:"\u0421\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u043f\u043e \u043a\u0438\u043b\u043e\u0431\u0430\u0439\u0442\u0430\u043c"}},1:{name:"ukrainian",strings:{authorizing:"\u0410\u0432\u0442\u043e\u0440\u0438\u0437\u0430\u0446\u0456\u044f",authorized:"\u0410\u0432\u0442\u043e\u0440\u0438\u0437\u0430\u0446\u0456\u044f \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0430",loadingMessageNumbers:"\u0412\u0438\u0437\u043d\u0430\u0447\u0435\u043d\u043d\u044f \u043a\u0456\u043b\u044c\u043a\u043e\u0441\u0442\u0456 \u043f\u043e\u0432\u0456\u0434\u043e\u043c\u043b\u0435\u043d\u044c",
-settingsText:"\u0412\u0438\u0431\u0435\u0440\u0456\u0442\u044c \u0431\u0430\u0436\u0430\u043d\u0456 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u0438",startButton:"\u041f\u043e\u0457\u0445\u0430\u043b\u0438!",verbose:"\u041b\u043e\u0433\u0433\u0456\u0440\u043e\u0432\u0430\u0442\u044c \u0432\u0441\u0456 \u0434\u0456\u0457",fatal:"\u041a\u0440\u0438\u0442\u0438\u0447\u043d\u0430 \u043f\u043e\u043c\u0438\u043b\u043a\u0430. \u0411\u0443\u0434\u044c \u043b\u0430\u0441\u043a\u0430, \u043f\u043e\u0432\u0456\u0434\u043e\u043c\u0442\u0435 \u043d\u0430\u0432\u0435\u0434\u0435\u043d\u0456 \u043d\u0438\u0436\u0447\u0435 \u0434\u0430\u043d\u0456 \u0440\u043e\u0437\u0440\u043e\u0431\u043d\u0438\u043a\u0443.",
-appName:"\u0421\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0430 \u043f\u0440\u0438\u0432\u0430\u0442\u043d\u0456 \u043f\u0435\u0440\u0435\u043f\u0438\u0441\u043a\u0438",nameCol:"\u0406\u043c'\u044f",numberOfMessagesCol:"\u0423\u0441\u044c\u043e\u0433\u043e \u043f\u043e\u0432\u0456\u0434\u043e\u043c\u043b\u0435\u043d\u044c",kbytes:"\u0412\u0440\u0430\u0445\u043e\u0432\u0443\u0432\u0430\u0442\u0438 \u0440\u043e\u0437\u043c\u0456\u0440 \u043f\u043e\u0432\u0456\u0434\u043e\u043c\u043b\u0435\u043d\u044c",
-gettingNames:"\u0417\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0435\u043d\u043d\u044f \u0456\u043c\u0435\u043d \u043a\u043e\u0440\u0438\u0441\u0442\u0443\u0432\u0430\u0447\u0456\u0432",symbolsCol:"\u0412\u0441\u044c\u043e\u0433\u043e \u0441\u0438\u043c\u0432\u043e\u043b\u0456\u0432",sentSymbolsCol:"\u0412\u0438 \u0432\u0456\u0434\u043f\u0440\u0430\u0432\u0438\u043b\u0438 \u0441\u0438\u043c\u0432\u043e\u043b\u0456\u0432",receivedSymbolsCol:"\u0412\u0438 \u043e\u0442\u0440\u0438\u043c\u0430\u043b\u0438 \u0441\u0438\u043c\u0432\u043e\u043b\u0456\u0432",
-sentCol:"\u0412\u0438 \u0432\u0456\u0434\u043f\u0440\u0430\u0432\u0438\u043b\u0438",receivedCol:"\u0412\u0438 \u043e\u0434\u0435\u0440\u0436\u0430\u043b\u0438",lastMsgCol:"\u041e\u0441\u0442\u0430\u043d\u043d\u0454 \u043f\u043e\u0432\u0456\u0434\u043e\u043c\u043b\u0435\u043d\u043d\u044f",messagesProcessed:"\u041e\u0431\u0440\u043e\u0431\u043b\u0435\u043d\u0435 \u043f\u043e\u0432\u0456\u0434\u043e\u043c\u043b\u0435\u043d\u044c",processingMessages:"\u041e\u0431\u0440\u043e\u0431\u043a\u0430 \u043f\u043e\u0432\u0456\u0434\u043e\u043c\u043b\u0435\u043d\u044c",
-done:"\u041e\u0431\u0440\u043e\u0431\u043a\u0430 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0430",incoming:"\u0432\u0445\u043e\u0434\u044f\u0442\u044c",outgoing:"\u0432\u0438\u0445\u0456\u0434\u043d\u0438\u0445",dayWithMostMessages:"\u041d\u0430\u0439\u0431\u0456\u043b\u044c\u0448\u0435 \u043f\u043e\u0432\u0456\u0434\u043e\u043c\u043b\u0435\u043d\u044c \u0431\u0443\u043b\u043e",timeWithMostMessages:"\u041d\u0430\u0439\u0431\u0456\u043b\u044c\u0448\u0435 \u043f\u043e\u0432\u0456\u0434\u043e\u043c\u043b\u0435\u043d\u044c",
-thankYou:"\u0421\u043f\u0430\u0441\u0438\u0431\u0456, \u0449\u043e \u0434\u043e\u0447\u0435\u043a\u0430\u043b\u0438\u0441\u044f, \u0441\u043f\u043e\u0434\u0456\u0432\u0430\u0454\u043c\u043e\u0441\u044f, \u0432\u043e\u043d\u043e \u0442\u043e\u0433\u043e \u043a\u043e\u0448\u0442\u0443\u0432\u0430\u043b\u043e!",exportByTime:"\u0415\u043a\u0441\u043f\u043e\u0440\u0442 \u0441\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0438 \u0437\u0430 \u0447\u0430\u0441\u043e\u043c",exportByMessages:"\u0415\u043a\u0441\u043f\u043e\u0440\u0442 \u0441\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0438 \u0437\u0430 \u043f\u043e\u0432\u0456\u0434\u043e\u043c\u043b\u0435\u043d\u043d\u044f\u043c",
-warning:"\u0423\u0432\u0430\u0433\u0430! \u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u043e\u0431\u0440\u043e\u0431\u0438\u0442\u0438 \u043f\u043e\u0432\u0456\u0434\u043e\u043c\u043b\u0435\u043d\u044c",friendsOnly:"\u0412\u0440\u0430\u0445\u043e\u0432\u0443\u0432\u0430\u0442\u0438 \u0442\u0456\u043b\u044c\u043a\u0438 \u0434\u0440\u0443\u0437\u0456\u0432",withSelected:"\u0412\u0438\u0431\u0440\u0430\u043d\u0456",exportToNote:"\u0435\u043a\u0441\u043f\u043e\u0440\u0442\u0443\u0432\u0430\u0442\u0438 \u0432 \u0437\u0430\u043c\u0456\u0442\u043a\u0443",
-ourGroup:"\u041d\u0430\u0448\u0430 \u0433\u0440\u0443\u043f\u0430",noteSuccess:"\u0417\u0430\u043c\u0456\u0442\u043a\u0430 \u0443\u0441\u043f\u0456\u0448\u043d\u043e \u0441\u0442\u0432\u043e\u0440\u0435\u043d\u0430",noteFailure:"\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0441\u0442\u0432\u043e\u0440\u0438\u0442\u0438 \u0437\u0430\u043c\u0456\u0442\u043a\u0443. \u0421\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0449\u0435 \u0440\u0430\u0437 \u043f\u0456\u0437\u043d\u0456\u0448\u0435.",
-seeNote:"\u041f\u043e\u0434\u0438\u0432\u0438\u0442\u0438\u0441\u044f",plotKbytesGraph:"\u043f\u043e\u0431\u0443\u0434\u0443\u0432\u0430\u0442\u0438 \u0433\u0440\u0430\u0444\u0456\u043a \u0437\u0430 \u043a\u0456\u043b\u044c\u043a\u0456\u0441\u0442\u044e \u0441\u0438\u043c\u0432\u043e\u043b\u0456\u0432",plotMessagesGraph:"\u043f\u043e\u0431\u0443\u0434\u0443\u0432\u0430\u0442\u0438 \u0433\u0440\u0430\u0444\u0456\u043a \u0437\u0430 \u043a\u0456\u043b\u044c\u043a\u0456\u0441\u0442\u044e \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0456\u0439\u044c",
-wantToPlotGraphs:"\u042f \u0437\u0430\u0445\u043e\u0447\u0443 \u0431\u0443\u0434\u0443\u0432\u0430\u0442\u0438 \u0433\u0430\u0440\u043d\u0456 \u0433\u0440\u0430\u0444\u0456\u043a\u0438",totalFirstName:"\u0417\u0430\u0433\u0430\u043b\u044c\u043d\u0430",totalLastName:"\u0441\u0442\u0430\u0442\u0438\u0441\u0442\u0438\u043a\u0430",sortByKBytes:"C\u043e\u0440\u0442\u0443\u0432\u0430\u0442\u0438 \u043f\u043e \u043a\u0456\u043b\u043e\u0431\u0430\u0439\u0442\u0430\u043c"}},3:{name:"english",strings:{authorizing:"Authorizing",
-authorized:"Authorization complete",loadingMessageNumbers:"Getting message numbers",fatal:"Fatal error. Please, send the info below to the developers",appName:"Private messages statistics",settingsText:"Set your desired parameters",startButton:"Start",verbose:"Verbose mode",kbytes:"Count message sizes as well",nameCol:"Name",numberOfMessagesCol:"Number of messages",gettingNames:"Loading user names",sentCol:"Sent",receivedCol:"Received",symbolsCol:"Total symbols",sentSymbolsCol:"Sent symbols",receivedSymbolsCol:"Received symbols",
-lastMsgCol:"Last Message",messagesProcessed:"Messages processed",processingMessages:"Processing messages",done:"Processing complete",incoming:"incoming",outgoing:"outgoing",dayWithMostMessages:"Day with most messages",timeWithMostMessages:"Time with most messages",thankYou:"Thank you for your time, we hope it was worth it!",exportByTime:"Export time statistics",exportByMessages:"Export message statistics",warning:"Warning! Failed to process messages",friendsOnly:"Count only for friends",withSelected:"Selected",
-exportToNote:"export to note",ourGroup:"Our club",noteSuccess:"Note created successfully",noteFailure:"Failed to create a note. Please try again later",seeNote:"See it",plotKbytesGraph:"plot symbol number graph",plotMessagesGraph:"plot message number graph",wantToPlotGraphs:"I'd like to plot fancy graphs",totalFirstName:"Overall",totalLastName:"stats",sortByKBytes:"Sort by kilobytes"}}},fatal:function(a){ui.setHeader(user.lang.fatal);ui.clearContent();var b=ce("textarea",{cols:80,rows:20},{fontFamily:"Courier new"});
-b.innerHTML=a;ui.appendContentElement(b);throw a;},log:function(a){a=formatDate(new Date,true)+": "+a;var b=ge("loggerPane");if(b==undefined||b==null){ui.addLoggerPane();b=ge("loggerPane")}b.innerHTML+=a+"\n";b.scrollTop=b.scrollHeight}},user={lang:SYS.LANGUAGES[langConfig.id]==undefined?SYS.LANGUAGES[3].strings:SYS.LANGUAGES[langConfig.id].strings,verbose:false,kbytes:true,friendsOnly:false,plotGraphs:true,sortByKBytes:false},ui={setTitle:function(a){document.title=a},setHeader:function(a){ge("header").innerHTML=
-a;this.setTitle(a)},setContent:function(a){ge("content").innerHTML=a},clearContent:function(){this.setContent("")},appendContentElement:function(a){ge("content").appendChild(a)},createProgressBar:function(){var a=ce("div",{id:"progressbar"},{position:"relative",width:"100%",height:"30px",margin:"3px",backgroundColor:"#DAE2E8"});a.appendChild(ce("div",{id:"progressbarbg"},{width:"0",height:"inherit",backgroundColor:"#45688E"}));a.appendChild(ce("div",{id:"progresstext"},{position:"absolute",left:"10px",
-top:"7px",width:"400px",height:"inherit",color:"#000",zIndex:69}));this.clearContent();this.appendContentElement(a)},updateProgressBar:function(a,b,c,d){var j=100*(a+c)/(b+d);ge("progressbarbg").style.width=j+"%";ge("progresstext").innerHTML=user.lang.messagesProcessed+": "+user.lang.incoming+": "+a+"/"+b+"; "+user.lang.outgoing+": "+c+"/"+d;this.setTitle(Math.floor(j)+"% "+user.lang.processingMessages)},sortBy:function(a,b){b=="tot-size"&&a.sort(function(c,d){c=statCounter.statByUser[c];d=statCounter.statByUser[d];
-return d.inSize+d.outSize-(c.inSize+c.outSize)});b=="in-size"&&a.sort(function(c,d){c=statCounter.statByUser[c];d=statCounter.statByUser[d];return d.inSize-c.inSize});b=="out-size"&&a.sort(function(c,d){c=statCounter.statByUser[c];d=statCounter.statByUser[d];return d.outSize-c.outSize});b=="tot"&&a.sort(function(c,d){c=statCounter.statByUser[c];d=statCounter.statByUser[d];return d.inM+d.outM-(c.inM+c.outM)});b=="in"&&a.sort(function(c,d){c=statCounter.statByUser[c];d=statCounter.statByUser[d];return d.inM-
-c.inM});b=="out"&&a.sort(function(c,d){c=statCounter.statByUser[c];d=statCounter.statByUser[d];return d.outM-c.outM});b=="date"&&a.sort(function(c,d){c=statCounter.statByUser[c];d=statCounter.statByUser[d];return d.lastMessageDate-c.lastMessageDate});return a},displayStats:function(a,b,c){messagesChecked=0;actionsShown=false;this.clearContent();ge("sideBar").style.display="none";ge("pageBody").style.width="96%";b=ce("div",{className:"mailbox"});b.innerHTML+='<div id="message" class="message" style="visibility:hidden; display:none;"> </div> ';
-this.appendContentElement(b);user.verbose&&SYS.log("Processing complete, rendering results");var d=ce("div",{className:"bar clearFix actionBar",innerHTML:user.lang.thankYou+(messageProcessor.failed>0?" "+user.lang.warning+": "+messageProcessor.failed:"")+'<div style="float:right"> &copy; <a href="'+SYS.LINK_TO_CLUB+'" target="_blank">vkontakte-stats</a>, 2010 &ndash; 2011</div>'}),j=ce("div",{id:"message_actions",innerHTML:user.lang.withSelected+": "},{visibility:"hidden"});j.innerHTML+='<a href="#" onclick="statCounter.exportToNote();">'+
-user.lang.exportToNote+"</a>";if(user.plotGraphs){iHTML='<span id="plot_graphs_links"> | ';iHTML+='<a href="#" onclick="ui.plotGraph(false);" id="plot_msg_graph_link">'+user.lang.plotMessagesGraph+"</a>";if(user.kbytes){iHTML+=" | ";iHTML+='<a href="#" onclick="ui.plotGraph(true);" id="plot_kb_graph_link">'+user.lang.plotKbytesGraph+"</a>"}j.innerHTML+=iHTML+"</span>"}d.appendChild(ce("div",{id:"graph"},{display:"none",width:"100%",height:"400px"}));d.appendChild(j);b.appendChild(d);d=ce("table",
-{cellspacing:"0",cellpadding:"0",id:"messages_rows"},{width:"100%"});b.appendChild(d);tableHTML='<thead><th class="msg_check" onmouseover="checkOver(this, 0)" onmouseout="checkOut(this, 0)" onclick="myCheckChange(this, 0)"><div class=""></div><input type="hidden" id="post_check_0"></th><th style="text-align: center, width: 30px"> </th><th class="messagePicture"> </th><th class="messageFrom">'+user.lang.nameCol+'</th><th onclick="javascript: ui.sort(\'tot\');" style="cursor: pointer">'+user.lang.numberOfMessagesCol+
-'</th><th onclick="javascript: ui.sort(\'out\');" style="cursor: pointer">'+user.lang.sentCol+'</th><th onclick="javascript: ui.sort(\'in\');" style="cursor: pointer">'+user.lang.receivedCol+"</th>";if(user.kbytes)tableHTML+='<th onclick="javascript: ui.sort(\'tot-size\');" style="cursor: pointer">'+user.lang.symbolsCol+'</th><th onclick="javascript: ui.sort(\'out-size\');" style="cursor: pointer">'+user.lang.sentSymbolsCol+'</th><th onclick="javascript: ui.sort(\'in-size\');" style="cursor: pointer">'+
-user.lang.receivedSymbolsCol+"</th>";tableHTML+='<th onclick="javascript: ui.sort(\'date\');" style="cursor: pointer">'+user.lang.lastMsgCol+"</th></thead>";d.innerHTML=tableHTML;b=ce("tbody");d.appendChild(b);a=[statCounter.ALL_ID].concat(this.sortBy(getKeys(a),c));for(c=0;c<a.length;c++){var k=a[c];sdata=statCounter.getStatData(k);udata=statCounter.getUserData(k);d=ce("tr",{id:"mess"+k});j=ce("td",{innerHTML:k==statCounter.ALL_ID?"":c},{textAlign:"center",width:"30px"});var e=ce("td",{innerHTML:'<div class=""></div><input type="hidden" id="post_check_'+
-k+'">',className:"msg_check"});e.setAttribute("onmouseover","checkOver(this, '"+k+"')");e.setAttribute("onmouseout","checkOut(this, '"+k+"')");e.setAttribute("onclick","myCheckChange(this, '"+k+"')");var g=ce("td",{innerHTML:k==statCounter.ALL_ID?"":'<a href="/id'+k+'" target="_blank"><img src="'+udata.photo+'" /></a>',className:"messagePicture"});k=ce("td",{innerHTML:(k==statCounter.ALL_ID?"":'<a href="/id'+k+'" target="_blank">')+udata.first_name+" "+udata.last_name+(k==statCounter.ALL_ID?"":"</a>"),
-className:"messageFrom"});var f=ce("td",{innerHTML:sdata.inM+sdata.outM}),h=ce("td",{innerHTML:sdata.outM}),l=ce("td",{innerHTML:sdata.inM});if(user.kbytes)var m=ce("td",{innerHTML:sdata.inSize+sdata.outSize}),o=ce("td",{innerHTML:sdata.outSize}),p=ce("td",{innerHTML:sdata.inSize});var n=ce("td",{innerHTML:'<a href="mail.php?act=show&id='+sdata.lastMessageId+'" target="_blank">'+formatDate(new Date(sdata.lastMessageDate*1E3))+"</a>"});d.appendChild(e);d.appendChild(j);d.appendChild(g);d.appendChild(k);
-d.appendChild(f);d.appendChild(h);d.appendChild(l);if(user.kbytes){d.appendChild(m);d.appendChild(o);d.appendChild(p)}d.appendChild(n);b.appendChild(d)}},sort:function(a){this.displayStats(statCounter.statByUser,statCounter.userData,a)},requestSettings:function(){this.setHeader(user.lang.appName+" "+SYS.VERSION);ui.clearContent();this.removeLoggerPane();var a=new MessageBox({title:user.lang.settingsText});a.addButton({label:user.lang.startButton,onClick:function(){a.hide();messageProcessor.start()}});
-var b='<div style="width: 300px; height: 30px;"><input type="hidden" id="param_verbose" /></div>';b+='<div style="width: 300px; height: 30px;"><input type="hidden" id="param_kbytes" /></div>';b+='<div style="width: 300px; height: 30px;"><input type="hidden" id="param_sort_kbytes" /></div>';b+='<div style="width: 300px; height: 30px;"><input type="hidden" id="param_friends_only" /></div>';b+='<div style="width: 300px; height: 30px;"><input type="hidden" id="param_fancy_graphs" /></div>';a.content(b).show();
-new Checkbox(ge("param_verbose"),{label:user.lang.verbose,checked:0,onChange:function(){user.verbose=!user.verbose}});new Checkbox(ge("param_kbytes"),{label:user.lang.kbytes,checked:1,onChange:function(){user.kbytes=!user.kbytes}});new Checkbox(ge("param_sort_kbytes"),{label:user.lang.sortByKBytes,checked:0,onChange:function(){user.sortByKBytes=!user.sortByKBytes}});new Checkbox(ge("param_friends_only"),{label:user.lang.friendsOnly,checked:0,onChange:function(){user.friendsOnly=!user.friendsOnly}});
-new Checkbox(ge("param_fancy_graphs"),{label:user.lang.wantToPlotGraphs,checked:1,onChange:function(){user.plotGraphs=!user.plotGraphs}})},addLoggerPane:function(){var a=ce("textarea",{cols:80,rows:20,id:"loggerPane"},{fontFamily:"Courier new"});insertAfter(ge("content"),a)},removeLoggerPane:function(){var a=ge("loggerPane");a!=undefined&&a.parentNode.removeChild(a)},onNoteNotCreated:function(){ge("message").innerHTML=user.lang.noteFailure;ge("message").style.display="block";ge("message").style.visibility=
-"visible"},onNoteCreated:function(a){ge("message").innerHTML=user.lang.noteSuccess+'. <a href="/note'+user.uid+"_"+a+'" target="_blank">'+user.lang.seeNote+"</a>";ge("message").style.display="block";ge("message").style.visibility="visible"},sentColors:[6806590,15976256,15747131],receivedColors:[8374630,15584101,15754329],plotGraph:function(a){ge("graph").style.display="";var b={isRTL:window.is_rtl,"lang.select_graphs":fixQuot("filter"),"lang.months":fixQuot("January,February,March,April,May,June,July,August,September,October,November,December"),
-"lang.dayMonths":fixQuot("January,February,March,April,May,June,July,August,September,October,November,December"),"lang.dateFormats.day_fullmon_year_hour":fixQuot("{day} {dayMonth} {year}, {hour12}:00"),"lang.dateFormats.day_fullmon_year":fixQuot("{month} {day}, {year}"),"lang.dateFormats.day_mon":fixQuot("{day} {month}"),"lang.dateFormats.day_fullmon":fixQuot("{day} {month}"),"lang.loading":fixQuot("Loading..."),"lang.no_data":fixQuot("No input data"),"lang.data_empty":fixQuot("Input data is empty"),
-"lang.error_loading":fixQuot("Loading error")};flashVars=clone(b);b=ge("messages_rows");for(var c="[",d=0,j=0;j<b.rows.length;++j){var k=b.rows[j];if(k=k.id?intval(k.id.replace(/^mess/,"")):0)if(intval(ge("post_check_"+k).value)){if(d>0)c+=",";if(a)var e=0,g=0,f='{"c": '+this.receivedColors[d]+',"f": 0, "d": [',h='{"c": '+this.sentColors[d]+',"f": 0, "d": [';else var l=0,m=0,o='{"c": '+this.sentColors[d]+',"f": 0, "d": [',p='{"c": '+this.receivedColors[d]+',"f": 0, "d": [';for(var n in statCounter.getStatData(k).history){var q=
-statCounter.getStatData(k).history[n];if(a){e+=q.outSize;g+=q.inSize;h+="["+n+","+e+"],";f+="["+n+","+g+"],"}else{l+=q.outM;m+=q.inM;o+="["+n+","+l+"],";p+="["+n+","+m+"],"}}if(a){h+="["+statCounter.lastMessageTime+","+e+']], "name": "'+statCounter.getUserData(k).first_name+" "+statCounter.getUserData(k).last_name+": "+user.lang.sentCol+'"}';f+="["+statCounter.lastMessageTime+","+g+']], "name": "'+statCounter.getUserData(k).first_name+" "+statCounter.getUserData(k).last_name+": "+user.lang.receivedCol+
-'"}';c+=h+","+f}else{o+="["+statCounter.lastMessageTime+","+l+']], "name": "'+statCounter.getUserData(k).first_name+" "+statCounter.getUserData(k).last_name+": "+user.lang.sentCol+'"}';p+="["+statCounter.lastMessageTime+","+m+']], "name": "'+statCounter.getUserData(k).first_name+" "+statCounter.getUserData(k).last_name+": "+user.lang.receivedCol+'"}';c+=o+","+p}d++}}flashVars.graphdata=fixQuot(c+"]");user.verbose&&SYS.log("plotting: "+flashVars.graphdata);flashVars.div_id="graph";swfobject.embedSWF("/swf/graph.swf?0.28",
-"graph","100%","400px","8","",flashVars,{allowfullscreen:"true"})}},statCounter={statByUser:{},userData:{},lastMessageTime:0,overallStats:{inM:0,outM:0,lastMessageDate:0,lastMessageId:0,inSize:0,outSize:0,history:{}},ALL_ID:-1,createEmptyStatsFor:function(a){var b={inM:0,outM:0,lastMessageDate:a.date,lastMessageId:a.mid,inSize:0,outSize:0,history:{}};return this.statByUser[a.uid]=b},updateStats:function(a,b){if(b.lastMessageDate<a.date){b.lastMessageDate=a.date;b.lastMessageId=a.mid}if(statCounter.lastMessageTime<
-a.date)statCounter.lastMessageTime=a.date;if(a.out){b.outM++;b.outSize+=a.body.length}else{b.inM++;b.inSize+=a.body.length}if(user.plotGraphs)b.history[a.date]={inM:a.out?0:1,outM:a.out?1:0,inSize:a.out?0:a.body.length,outSize:a.out?a.body.length:0}},processSingleMessage:function(a){userStats=this.statByUser[a.uid];if(userStats==undefined)userStats=this.createEmptyStatsFor(a);this.updateStats(a,userStats);this.updateStats(a,this.overallStats)},getStatData:function(a){if(a==this.ALL_ID)return this.overallStats;
-return this.statByUser[a]},getUserData:function(a){if(a==this.ALL_ID)return{first_name:user.lang.totalFirstName,last_name:user.lang.totalLastName};return this.userData[a]==undefined?{first_name:"DELETED",last_name:"DELETED"}:this.userData[a]},generateNoteContents:function(){var a="[[club21792535|vkontakte-stats]]\n\n";a+="{|\n";a+="|-\n";a+="! ";a+="!! "+user.lang.nameCol;a+="!! "+user.lang.numberOfMessagesCol;a+="!! "+user.lang.sentCol;a+="!! "+user.lang.receivedCol;if(user.kbytes){a+="!! "+user.lang.symbolsCol;
-a+="!! "+user.lang.sentSymbolsCol;a+="!! "+user.lang.receivedSymbolsCol}a+="\n";for(var b=0,c=ge("messages_rows"),d=0;d<c.rows.length;++d){var j=c.rows[d];j=j.id?j.id.replace(/^mess/,""):0;if(j!=0){j!=this.ALL_ID&&b++;if(intval(ge("post_check_"+j).value)){sdata=this.getStatData(j);udata=this.getUserData(j);a+="|-\n";a+="| "+(j!=this.ALL_ID?b:"")+"\n";a+="| [[id"+j+"|"+udata.first_name+" "+udata.last_name+"]]\n";a+="| "+(sdata.inM+sdata.outM)+"\n";a+="| "+sdata.outM+"\n";a+="| "+sdata.inM+"\n";if(user.kbytes){a+=
-"| "+(sdata.inSize+sdata.outSize)+"\n";a+="| "+sdata.outSize+"\n";a+="| "+sdata.inSize+"\n"}}}}a+="|}\n";return a},exportToNote:function(){apiConnector.createNote(user.lang.appName,this.generateNoteContents(),function(a,b){var c=eval("("+b+")");if(c.response==undefined){SYS.log("Note creationg failed!"+b);ui.onNoteNotCreated()}else{c=c.response.nid;user.verbose&&SYS.log("Note created: "+c);ui.onNoteCreated(c)}})}},messageProcessor={incomingMessages:undefined,processedIncomingMessages:0,outgoingMessages:undefined,
-processedOutgoingMessages:0,failed:0,onUserProfilesLoaded:function(a){var b=eval("("+a+")");b.response==undefined&&SYS.fatal(a);b=b.response;for(a=0;a<b.length;a++)statCounter.userData[b[a].uid]=b[a];this.pendingUserDataRequests--;user.verbose&&SYS.log("Got user profile data, "+this.pendingUserDataRequest+" goes remaining");if(this.pendingUserDataRequests<=0){ui.setHeader(user.lang.done+"!");ui.displayStats(statCounter.statByUser,statCounter.userData,user.kbytes&&user.sortByKBytes?"tot-size":"tot")}},
-onAllMessagesLoaded:function(){ui.updateProgressBar(this.processedIncomingMessages,this.incomingMessages,this.processedOutgoingMessages,this.outgoingMessages);ui.setHeader(user.lang.gettingNames+"...");user.verbose&&SYS.log("Got all messages, getting user names");this.api.getUserNames(getKeys(statCounter.statByUser),function(a,b){messageProcessor.onUserProfilesLoaded(b)})},onMessagesLoaded:function(a,b){var c=0;if(a==undefined){this.failed+=SYS.MESSAGES_PER_REQUEST;SYS.log("Skipping "+SYS.MESSAGES_PER_REQUEST+
-" messages...");if(b)this.processedOutgoingMessages+=SYS.MESSAGES_PER_REQUEST;else this.processedIncomingMessages+=SYS.MESSAGES_PER_REQUEST;c=this.offset+SYS.MESSAGES_PER_REQUEST}else if(a.response!=undefined){c=a.response;var d=c[0];user.verbose&&SYS.log("Got "+(c.length-1)+" messages");for(var j=1;j<c.length;j++)statCounter.processSingleMessage(c[j]);if(b){this.processedOutgoingMessages+=c.length-1;c=this.processedOutgoingMessages+(d-this.outgoingMessages);d!=this.outgoingMessages&&user.verbose&&
-SYS.log("By the way, the user has sent "+(d-this.outgoingMessages)+" message(s) after the script was started");if(c>=d||SYS.DEBUG&&c>=SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE){this.onAllMessagesLoaded();return}}else{this.processedIncomingMessages+=c.length-1;c=this.processedIncomingMessages+(d-this.incomingMessages);d!=this.incomingMessages&&user.verbose&&SYS.log("By the way, the user has received "+(d-this.incomingMessages)+" message(s) after the script was started");if(c>=d||SYS.DEBUG&&c>=SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE){b=
-1;c=0}}ui.updateProgressBar(this.processedIncomingMessages,this.incomingMessages,this.processedOutgoingMessages,this.outgoingMessages)}else{b=this.out;c=this.offset}d=(new Date).getTime()-this.requestStartTime;user.verbose&&SYS.log("Elapsed time:  "+d+" ms");if(d>=SYS.MSEC_BETWEEN_REQUESTS){user.verbose&&SYS.log("Starting new request...");this.requestStartTime=(new Date).getTime();this.api.getMessages(b,c,SYS.MESSAGES_PER_REQUEST,function(k){messageProcessor.onMessagesLoaded(k,b)})}else{this.out=
-b;this.offset=c;user.verbose&&SYS.log("Scheduling new request in "+(SYS.MSEC_BETWEEN_REQUESTS-d)+"ms");setTimeout("messageProcessor.requestStartTime = (new Date()).getTime(); messageProcessor.api.getMessages(messageProcessor.out, messageProcessor.offset, SYS.MESSAGES_PER_REQUEST, function(response) {messageProcessor.onMessagesLoaded(response, messageProcessor.out)});",SYS.MSEC_BETWEEN_REQUESTS-d)}},startProcessingMessages:function(){ui.setHeader(user.lang.processingMessages+"...");ui.createProgressBar();
-ui.updateProgressBar(0,this.incomingMessages,0,this.outgoingMessages);this.requestStartTime=(new Date).getTime();this.api.getMessages(0,0,SYS.MESSAGES_PER_REQUEST,function(a){messageProcessor.onMessagesLoaded(a,0)})},onMessageNumbersLoaded:function(a,b){var c=a.response;user.verbose&&SYS.log("Loaded message numbers ["+b+"]: "+c[0]);if(b)this.outgoingMessages=c[0];else this.incomingMessages=c[0];this.incomingMessages!=undefined&&this.outgoingMessages!=undefined&&setTimeout(function(){messageProcessor.startProcessingMessages()},
-SYS.MSEC_BETWEEN_REQUESTS)},getNumberOfMessages:function(){this.api.getMessages(0,0,1,function(a){messageProcessor.onMessageNumbersLoaded(a,0)});setTimeout(function(){apiConnector.getMessages(1,0,1,function(a){messageProcessor.onMessageNumbersLoaded(a,1)})},SYS.MSEC_BETWEEN_REQUESTS*2)},start:function(){this.api=apiConnector;if(user.verbose){ui.addLoggerPane();SYS.log("Started")}ui.setHeader(user.lang.loadingMessageNumbers);this.getNumberOfMessages()}},apiConnector={API_ADDRESS:"/api.php",API_VERSION:"3.0",
-LOGON_FAIL_STRING:"login_fail",LOGON_SUCCESS_STRING:"login_success",logon:function(a,b){this.appId=a;var c=ce("iframe",{src:"/login.php?app="+a+"&layout=popup&type=browser&settings="+b},{position:"relative",width:"100%",height:"500px"});c.setAttribute("onload","apiConnector.onLogonFrameLoaded(this.contentWindow.location.href)");ui.setHeader(user.lang.authorizing+"...");ui.clearContent();ui.appendContentElement(c)},onLogonFrameLoaded:function(a){a=unescape(a);a.indexOf(this.LOGON_FAIL_STRING)!=-1&&
-SYS.fatal("failed to log on: "+a);if(a.indexOf(this.LOGON_SUCCESS_STRING)!=-1){sessionInfo=eval("("+a.split("#")[1].split("=")[1]+")");user.uid=sessionInfo.mid;this.secret=sessionInfo.secret;this.sid=sessionInfo.sid;ui.setHeader(user.lang.authorized);ui.clearContent();ui.requestSettings()}},getMessages:function(a,b,c,d){user.verbose&&SYS.log("getMessages invoked: out="+a+"; offset="+b);var j=user.uid,k=user.kbytes?0:1;j+="api_id="+this.appId;j+="count="+c;if(user.friendsOnly)j+="filters=4";j+="format=JSON";
-j+="method=messages.get";j+="offset="+b;j+="out="+a;j+="preview_length="+k;j+="v="+this.API_VERSION;j+=this.secret;var e=new Ajax;e.onDone=function(g,f){var h;try{h=eval("("+f+")")}catch(l){SYS.log("Failed to parse JSON response: ["+l+"] "+f)}if(h==undefined)d();else if(h.error!=undefined)if(h.error.error_code==SYS.TOO_MANY_REQUESTS_ERR_CODE){user.verbose&&SYS.log("too many requests: "+f);d({})}else SYS.fatal(f);else d(h)};params={api_id:apiConnector.appId,count:c,format:"JSON",method:"messages.get",
-offset:b,out:a,preview_length:k,sid:apiConnector.sid,sig:md5(j),v:this.API_VERSION};if(user.friendsOnly)params.filters=4;e.post(this.API_ADDRESS,params)},doGetUserData:function(a,b){user.verbose&&SYS.log("doGetUserData invoked: ids="+a);var c=user.uid;c+="api_id="+this.appId;c+="fields=photo";c+="format=JSON";c+="method=getProfiles";var d=a.join(",");c+="uids="+d;c+="v="+this.API_VERSION;c+=this.secret;var j=new Ajax;j.onDone=b;j.post(this.API_ADDRESS,{api_id:apiConnector.appId,fields:"photo",format:"JSON",
-method:"getProfiles",sid:apiConnector.sid,sig:md5(c),uids:d,v:this.API_VERSION})},getUserNames:function(a,b){a=splitArrayToSubArrays(a,SYS.MAX_USERS_PER_REQUEST);this.onDone=b;messageProcessor.pendingUserDataRequests=a.length;for(var c=0;c<a.length;c++)setTimeout("apiConnector.doGetUserData(["+a[c]+"], apiConnector.onDone)",(c+1)*SYS.MSEC_BETWEEN_REQUESTS_FOR_USERDATA)},createNote:function(a,b,c){user.verbose&&SYS.log("createNote invoked: title="+a+"; text="+b);var d=user.uid;d+="api_id="+this.appId;
-d+="format=JSON";d+="method=notes.add";d+="text="+b;d+="title="+a;d+="v="+this.API_VERSION;d+=this.secret;var j=new Ajax;j.onDone=c;j.post(this.API_ADDRESS,{api_id:apiConnector.appId,format:"JSON",method:"notes.add",sid:apiConnector.sid,sig:md5(d),text:b,title:a,v:this.API_VERSION})}},start=function(){apiConnector.logon(SYS.APP_ID,SYS.LOGIN_SETTING)},allFiles=[],i;for(i in SYS.JS_FILES_TO_LOAD)allFiles.push(SYS.JS_FILES_TO_LOAD[i]);for(i in SYS.CSS_FILES_TO_LOAD)allFiles.push(SYS.CSS_FILES_TO_LOAD[i]);
-LazyLoader(allFiles,start);
+var getKeys = function(obj){
+	var keys = [];
+	for(var key in obj){
+		keys.push(key);
+	}
+	return keys;
+};
+
+var fixQuot = function(s) {
+	if(browser.msie)return s.replace(/\"/g, '&quot;');
+	else return s;
+}
+
+var nKeys = function(obj){
+	var keys = 0;
+	for(var key in obj){
+		keys ++;
+	}
+	return keys;
+};
+
+var splitArrayToSubArrays = function(arr, maxPieceSize) {
+	var result = [];
+	for(var i = 0; i < arr.length / maxPieceSize; i ++) {
+		result.push(arr.slice(maxPieceSize * i, maxPieceSize * (i + 1)));
+	}
+	return result;
+};
+
+var formatDate = function(date, withMsec) {
+	var year = date.getFullYear();
+	var month = date.getMonth() + 1;
+	if(month < 10) month = '0' + month;
+	var day = date.getDate();
+	if(day < 10) day = '0' + day;
+	
+	var hours = date.getHours();
+	if(hours < 10) hours = '0' + hours;
+	
+	var minutes = date.getMinutes();
+	if(minutes < 10) minutes = '0' + minutes;
+	
+	var seconds = date.getSeconds();
+	if(seconds < 10) seconds = '0' + seconds;
+	
+	if(withMsec) {
+	
+		var msec = mod(date.getTime(), 1000);
+		if(msec < 100) msec = '0' + msec;
+		if(intval(msec) < 10) msec = '0' + msec;
+	
+		seconds = seconds + '.' + msec;
+		
+	}
+	
+	return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
+};
+
+var insertAfter = function ( referenceNode, newNode ){
+	referenceNode.parentNode.insertBefore( newNode, referenceNode.nextSibling );
+};
+
+//because when inserted into address bar, expressions with percentage sign tend to get converted to characters
+var mod = function(first, second) {
+	return first % second;
+};
+
+var myCheckChange = function(obj, uid) {
+	if (!cur.messChecked) cur.messChecked={};
+	if (cur.messCheckedNum == null) cur.messCheckedNum=0;
+	mail.checkChange(obj,uid);
+	//(cur.messCheckedNum > 0 ? hide : show)('vkstats_text'); // hide copyright bar
+	if( cur.messCheckedNum > SYS.MAX_USERS_AT_ONE_GRAPH) {	
+		if(user.plotGraphs) {
+			hide('plot_graphs_links');
+		}
+		
+	} else {
+		if(user.plotGraphs) {
+			show('plot_graphs_links');
+		}
+	}
+};
+
+
+//Here goest the google code closure-compressed md5 calculating function
+var rotateLeft=function(a,b){return a<<b|a>>>32-b},addUnsigned=function(a,b){var g,h,i,j,c;i=a&2147483648;j=b&2147483648;g=a&1073741824;h=b&1073741824;c=(a&1073741823)+(b&1073741823);if(g&h)return c^2147483648^i^j;return g|h?c&1073741824?c^3221225472^i^j:c^1073741824^i^j:c^i^j},F=function(a,b,g){return a&b|~a&g},G=function(a,b,g){return a&g|b&~g},H=function(a,b,g){return a^b^g},I=function(a,b,g){return b^(a|~g)},FF=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(F(b,g,h),i),c));return addUnsigned(rotateLeft(a,
+j),b)},GG=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(G(b,g,h),i),c));return addUnsigned(rotateLeft(a,j),b)},HH=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(H(b,g,h),i),c));return addUnsigned(rotateLeft(a,j),b)},II=function(a,b,g,h,i,j,c){a=addUnsigned(a,addUnsigned(addUnsigned(I(b,g,h),i),c));return addUnsigned(rotateLeft(a,j),b)},convertToWordArray=function(a){var b,g=a.length;b=g+8;for(var h=((b-mod(b,64))/64+1)*16,i=Array(h-1),j=0,c=0;c<g;){b=(c-mod(c,4))/4;j=mod(c,4)*
+8;i[b]|=a.charCodeAt(c)<<j;c++}b=(c-mod(c,4))/4;j=mod(c,4)*8;i[b]|=128<<j;i[h-2]=g<<3;i[h-1]=g>>>29;return i},wordToHex=function(a){var b="",g="",h;for(h=0;h<=3;h++){g=a>>>h*8&255;g="0"+g.toString(16);b+=g.substr(g.length-2,2)}return b},uTF8Encode=function(a){a=a.replace(/\x0d\x0a/g,"\n");for(var b="",g=0;g<a.length;g++){var h=a.charCodeAt(g);if(h<128)b+=String.fromCharCode(h);else{if(h>127&&h<2048)b+=String.fromCharCode(h>>6|192);else{b+=String.fromCharCode(h>>12|224);b+=String.fromCharCode(h>>6&63|128)}b+=
+String.fromCharCode(h&63|128)}}return b},md5=function(a){var b=[],g,h,i,j,c,d,e,f;a=uTF8Encode(a);b=convertToWordArray(a);c=1732584193;d=4023233417;e=2562383102;f=271733878;for(a=0;a<b.length;a+=16){g=c;h=d;i=e;j=f;c=FF(c,d,e,f,b[a+0],7,3614090360);f=FF(f,c,d,e,b[a+1],12,3905402710);e=FF(e,f,c,d,b[a+2],17,606105819);d=FF(d,e,f,c,b[a+3],22,3250441966);c=FF(c,d,e,f,b[a+4],7,4118548399);f=FF(f,c,d,e,b[a+5],12,1200080426);e=FF(e,f,c,d,b[a+6],17,2821735955);d=FF(d,e,f,c,b[a+7],22,4249261313);c=FF(c,d,
+e,f,b[a+8],7,1770035416);f=FF(f,c,d,e,b[a+9],12,2336552879);e=FF(e,f,c,d,b[a+10],17,4294925233);d=FF(d,e,f,c,b[a+11],22,2304563134);c=FF(c,d,e,f,b[a+12],7,1804603682);f=FF(f,c,d,e,b[a+13],12,4254626195);e=FF(e,f,c,d,b[a+14],17,2792965006);d=FF(d,e,f,c,b[a+15],22,1236535329);c=GG(c,d,e,f,b[a+1],5,4129170786);f=GG(f,c,d,e,b[a+6],9,3225465664);e=GG(e,f,c,d,b[a+11],14,643717713);d=GG(d,e,f,c,b[a+0],20,3921069994);c=GG(c,d,e,f,b[a+5],5,3593408605);f=GG(f,c,d,e,b[a+10],9,38016083);e=GG(e,f,c,d,b[a+15],
+14,3634488961);d=GG(d,e,f,c,b[a+4],20,3889429448);c=GG(c,d,e,f,b[a+9],5,568446438);f=GG(f,c,d,e,b[a+14],9,3275163606);e=GG(e,f,c,d,b[a+3],14,4107603335);d=GG(d,e,f,c,b[a+8],20,1163531501);c=GG(c,d,e,f,b[a+13],5,2850285829);f=GG(f,c,d,e,b[a+2],9,4243563512);e=GG(e,f,c,d,b[a+7],14,1735328473);d=GG(d,e,f,c,b[a+12],20,2368359562);c=HH(c,d,e,f,b[a+5],4,4294588738);f=HH(f,c,d,e,b[a+8],11,2272392833);e=HH(e,f,c,d,b[a+11],16,1839030562);d=HH(d,e,f,c,b[a+14],23,4259657740);c=HH(c,d,e,f,b[a+1],4,2763975236);
+f=HH(f,c,d,e,b[a+4],11,1272893353);e=HH(e,f,c,d,b[a+7],16,4139469664);d=HH(d,e,f,c,b[a+10],23,3200236656);c=HH(c,d,e,f,b[a+13],4,681279174);f=HH(f,c,d,e,b[a+0],11,3936430074);e=HH(e,f,c,d,b[a+3],16,3572445317);d=HH(d,e,f,c,b[a+6],23,76029189);c=HH(c,d,e,f,b[a+9],4,3654602809);f=HH(f,c,d,e,b[a+12],11,3873151461);e=HH(e,f,c,d,b[a+15],16,530742520);d=HH(d,e,f,c,b[a+2],23,3299628645);c=II(c,d,e,f,b[a+0],6,4096336452);f=II(f,c,d,e,b[a+7],10,1126891415);e=II(e,f,c,d,b[a+14],15,2878612391);d=II(d,e,f,c,
+b[a+5],21,4237533241);c=II(c,d,e,f,b[a+12],6,1700485571);f=II(f,c,d,e,b[a+3],10,2399980690);e=II(e,f,c,d,b[a+10],15,4293915773);d=II(d,e,f,c,b[a+1],21,2240044497);c=II(c,d,e,f,b[a+8],6,1873313359);f=II(f,c,d,e,b[a+15],10,4264355552);e=II(e,f,c,d,b[a+6],15,2734768916);d=II(d,e,f,c,b[a+13],21,1309151649);c=II(c,d,e,f,b[a+4],6,4149444226);f=II(f,c,d,e,b[a+11],10,3174756917);e=II(e,f,c,d,b[a+2],15,718787259);d=II(d,e,f,c,b[a+9],21,3951481745);c=addUnsigned(c,g);d=addUnsigned(d,h);e=addUnsigned(e,i);f=
+addUnsigned(f,j)}return(wordToHex(c)+wordToHex(d)+wordToHex(e)+wordToHex(f)).toLowerCase()};var SYS = {
+	VERSION: '4.2.1',
+	APP_ID: 2045168,
+	LOGIN_SETTING: 0 + 2048 + 4096,
+	DEBUG: false,
+	MESSAGES_TO_PROCESS_IN_DEBUG_MODE: 400,
+	MESSAGES_PER_REQUEST: 100,
+	MSEC_BETWEEN_REQUESTS: 333,
+	MSEC_BETWEEN_REQUESTS_FOR_USERDATA: 1000,
+	MAX_USERS_PER_REQUEST: 1000,
+	LINK_TO_CLUB: '/club21792535',
+	TOO_MANY_REQUESTS_ERR_CODE: 6,
+	MAX_USERS_AT_ONE_GRAPH: 3,
+	CSS_FILES_TO_LOAD: ['http://vk.com/css/mail2.css', 'http://vk.com/css/dialog2.css', 'http://vk.com/css/pages.css', 'http://vk.com/css/ui_controls.css'],
+	JS_FILES_TO_LOAD: ['http://vk.com/js/lib/swfobject2.js', 'http://vk.com/js/mail.js', 'http://vk.com/js/lib/ui_controls.js'/*, 'http://vk.com/js/common.js'*/],
+	LANGUAGES: {
+		0: {
+			name: 'russian',
+			strings: {
+				authorizing: 'Авторизация',
+				authorized: 'Авторизация завершена',
+				loadingMessageNumbers: 'Определение числа сообщений',
+				fatal: 'Критическая ошибка. Пожалуйста, сообщите приведённые ниже данные разработчику.',
+				appName: 'Статистика личной переписки',
+				nameCol: 'Имя',
+				kbytes: 'Учитывать размер сообщений',
+				settingsText: 'Выберите желаемые параметры',
+				startButton: 'Поехали!',
+				verbose: 'Логгировать все действия',
+				gettingNames: 'Загрузка имён пользователей',
+				numberOfMessagesCol: 'Всего сообщений',
+				sentCol: 'Отправлено',
+				receivedCol: 'Получено',
+				symbolsCol: 'Всего символов',
+				sentSymbolsCol: 'Отправлено символов',
+				receivedSymbolsCol: 'Получено символов',
+				lastMsgCol: 'Последнее сообщение',
+				processingMessages: 'Обработка сообщений',
+				done: 'Обработка завершена',
+				messagesProcessed: 'Обработано сообщений',
+				incoming: 'входящих',
+				outgoing: 'исходящих',
+				dayWithMostMessages: 'Больше всего сообщений было',
+				timeWithMostMessages: 'Больше всего сообщений',
+				thankYou: 'Спасибо, что дождались, надеемся, оно того стоило!',
+				exportByTime: 'Экспорт статистики по времени',
+				exportByMessages: 'Экспорт статистики по сообщениям',
+				warning: 'Внимание! Не удалось обработать сообщений',
+				friendsOnly: 'Учитывать только друзей',
+				withSelected: 'Выбранные',
+				exportToNote: 'экспортировать в заметку',
+				ourGroup: 'Наша группа',
+				noteSuccess: 'Заметка успешно создана',
+				noteFailure: 'Не удалось создать заметку. Попробуйте ещё раз позднее.',
+				seeNote: 'Посмотреть',
+				plotKbytesGraph: 'построить график по числу символов',
+				plotMessagesGraph: 'построить график по числу сообщений',
+				wantToPlotGraphs: 'Я захочу строить графики общения от времени',
+				totalFirstName: 'Общая', 
+				totalLastName: 'статистика',
+				sortByKBytes: 'Сортировать по килобайтам'
+			}
+		},
+		1: {
+			name: 'ukrainian',
+			strings: {
+				authorizing: 'Авторизація',
+				authorized: 'Авторизація завершена',
+				loadingMessageNumbers: 'Визначення кількості повідомлень',
+				settingsText: 'Виберіть бажані параметри',
+				startButton: 'Поїхали!',
+				verbose: 'Логгіровать всі дії',
+				fatal: 'Критична помилка. Будь ласка, повідомте наведені нижче дані розробнику.',
+				appName: 'Статистика приватні переписки',
+				nameCol: "Ім'я",
+				numberOfMessagesCol: 'Усього повідомлень',
+				kbytes: 'Враховувати розмір повідомлень',
+				gettingNames: 'Завантаження імен користувачів',
+				symbolsCol: 'Всього символів',
+				sentSymbolsCol: 'Ви відправили символів',
+				receivedSymbolsCol: 'Ви отримали символів',
+				sentCol: 'Ви відправили',
+				receivedCol: 'Ви одержали',
+				lastMsgCol: 'Останнє повідомлення',
+				messagesProcessed: 'Оброблене повідомлень',
+				processingMessages: 'Обробка повідомлень',
+				done: 'Обробка завершена',
+				incoming: 'входять',
+				outgoing: 'вихідних',
+				dayWithMostMessages: 'Найбільше повідомлень було',
+				timeWithMostMessages: 'Найбільше повідомлень',
+				thankYou: 'Спасибі, що дочекалися, сподіваємося, воно того коштувало!',
+				exportByTime: 'Експорт статистики за часом',
+				exportByMessages: 'Експорт статистики за повідомленням',
+				warning: 'Увага! Не вдалося обробити повідомлень',
+				friendsOnly: 'Враховувати тільки друзів',
+				withSelected: 'Вибрані',
+				exportToNote: 'експортувати в замітку',
+				ourGroup: 'Наша група',
+				noteSuccess: 'Замітка успішно створена',
+				noteFailure: 'Не вдалося створити замітку. Спробуйте ще раз пізніше.',
+				seeNote: 'Подивитися',
+				plotKbytesGraph: 'побудувати графік за кількістю символів',
+				plotMessagesGraph: 'побудувати графік за кількістю сообщенійь',
+				wantToPlotGraphs: 'Я захочу будувати гарні графіки',
+				totalFirstName: 'Загальна', 
+				totalLastName: 'статистика',
+				sortByKBytes: 'Cортувати по кілобайтам'
+			}
+		},
+		3: {
+			name: 'english',
+			strings: {
+				authorizing: 'Authorizing',
+				authorized: 'Authorization complete',
+				loadingMessageNumbers: 'Getting message numbers',
+				fatal: 'Fatal error. Please, send the info below to the developers',
+				appName: 'Private messages statistics',
+				settingsText: 'Set your desired parameters',
+				startButton: 'Start',
+				verbose: 'Verbose mode',
+				kbytes: 'Count message sizes as well',
+				nameCol: 'Name',
+				numberOfMessagesCol: 'Number of messages',
+				gettingNames: 'Loading user names',
+				sentCol: 'Sent',
+				receivedCol: 'Received',
+				symbolsCol: 'Total symbols',
+				sentSymbolsCol: 'Sent symbols',
+				receivedSymbolsCol: 'Received symbols',
+				lastMsgCol: 'Last Message',
+				messagesProcessed: 'Messages processed',
+				processingMessages: 'Processing messages',
+				done: 'Processing complete',
+				incoming: 'incoming',
+				outgoing: 'outgoing',
+				dayWithMostMessages: 'Day with most messages',
+				timeWithMostMessages: 'Time with most messages',
+				thankYou: 'Thank you for your time, we hope it was worth it!',
+				exportByTime: 'Export time statistics',
+				exportByMessages: 'Export message statistics',
+				warning: 'Warning! Failed to process messages',
+				friendsOnly: 'Count only for friends',
+				withSelected: 'Selected',
+				exportToNote: 'export to note',
+				ourGroup: 'Our club',
+				noteSuccess: 'Note created successfully',
+				noteFailure: 'Failed to create a note. Please try again later',
+				seeNote: 'See it',
+				plotKbytesGraph: 'plot symbol number graph',
+				plotMessagesGraph: 'plot message number graph',
+				wantToPlotGraphs: 'I\'d like to plot fancy graphs',
+				totalFirstName: 'Overall', 
+				totalLastName: 'stats',
+				sortByKBytes: 'Sort by kilobytes'
+			}
+		}
+	},
+	
+	fatal: function(obj) {
+		ui.setHeader(user.lang.fatal);
+		ui.clearContent();
+		var t = ce('textarea', {'cols': 80, 'rows': 20}, {fontFamily: 'Courier new'});
+		t.innerHTML = obj;
+		ui.appendContentElement(t);
+		throw obj;
+	},
+	
+	log: function(str) {
+		str = formatDate(new Date(), true) + ': ' + str;
+		var pane = ge('loggerPane');
+		if(pane == undefined || pane == null) {
+			ui.addLoggerPane();
+			pane = ge('loggerPane');
+		}
+		pane.innerHTML += str + "\n";
+		pane.scrollTop = pane.scrollHeight;
+	}
+};
+
+var user = {
+	lang: SYS.LANGUAGES[langConfig.id] == undefined ? SYS.LANGUAGES[3].strings : SYS.LANGUAGES[langConfig.id].strings,
+	verbose: false,
+	kbytes: true,
+	friendsOnly: false,
+	plotGraphs: true,
+	sortByKBytes: false
+};var ui = {
+	setTitle: function(string) {
+		document.title = string;
+	},
+
+	setHeader: function(string) {
+		show('header');
+		ge('title').innerHTML = string;
+		this.setTitle(string);
+	},
+	
+	setContent: function(content) {
+		ge('content').innerHTML = content;
+	},
+	
+	clearContent: function() {
+		this.setContent('');
+	},
+	
+	appendContentElement: function(element) {
+		ge('content').appendChild(element);
+	},
+	
+	createProgressBar: function() {
+		var pr = ce('div',
+			{id: 'progressbar'},
+			{position: 'relative', width: '100%', height: '30px', margin: '3px', backgroundColor: '#DAE2E8'}
+		);
+		pr.appendChild(
+			ce('div',
+			{id: 'progressbarbg'}, {width: '0', height: 'inherit', backgroundColor: '#45688E'}
+			)
+		);
+		pr.appendChild(
+			ce('div',
+			{id: 'progresstext'}, {position: 'absolute', left: '10px', top: '7px', width: '400px', height: 'inherit', color: '#000', zIndex: 69}
+			)
+		);
+		
+		this.clearContent();
+		this.appendContentElement(pr);
+	},
+	
+	updateProgressBar: function(processedIncoming, totalIncoming, processedOutgoing, totalOutgoing) {
+		var processed = processedIncoming + processedOutgoing,
+			total = totalIncoming + totalOutgoing,
+			percentage = (100 * processed / total);
+		ge('progressbarbg').style.width = percentage + '%';
+		ge('progresstext').innerHTML = user.lang.messagesProcessed + ': ' +
+			user.lang.incoming + ': ' + processedIncoming + '/' + totalIncoming + '; ' +
+			user.lang.outgoing + ': ' + processedOutgoing + '/' + totalOutgoing;
+
+		this.setTitle(Math.floor(percentage) + '% ' + user.lang.processingMessages);
+	},
+	
+	sortBy: function(sorted, sortBy) {
+		if(sortBy == 'tot-size') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.inSize + b.outSize - (a.inSize + a.outSize);
+			});
+		}
+		
+		if(sortBy == 'in-size') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.inSize - a.inSize;
+			});
+		}
+		
+		if(sortBy == 'out-size') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.outSize - a.outSize;
+			});
+		}
+		
+		if(sortBy == 'tot') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.inM + b.outM - (a.inM + a.outM);
+			});
+		}
+		
+		if(sortBy == 'in') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.inM - a.inM;
+			});
+		}
+		
+		if(sortBy == 'out') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.outM - a.outM;
+			});
+		}
+		
+		if(sortBy == 'date') {
+			sorted.sort(function(a,b) {
+				a = statCounter.statByUser[a];
+				b = statCounter.statByUser[b];
+				return b.lastMessageDate - a.lastMessageDate;
+			});
+		}
+		
+		return sorted;
+	},
+	
+	displayStats: function(stats, userData, sortBy) {
+	
+		 cur.messCheckedNum = 0; actionsShown = false;
+	
+		this.clearContent();
+		handlePageView({width:950});
+		/*
+		ge('side_bar').style.display = 'none';
+		ge('page_body').style.width = '96%';
+		*/
+		var div = ce('div', {className: 'mailbox'});
+		div.innerHTML += '<div id="mail_top_msg" class="message" style="display:none;"> </div> ';
+		
+		this.appendContentElement(div);
+		
+	
+		if(user.verbose) {
+			SYS.log('Processing complete, rendering results');
+		}
+		
+		var cPane = ce('div', {id:"mail_bar", className: 'clear_fix bar bar clearFix actionBar', innerHTML:
+			'<div id="vkstats_text"><span>' + user.lang.thankYou + '</span>' + (messageProcessor.failed > 0 ? ' ' + user.lang.warning + ': ' + messageProcessor.failed : '') + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010 &ndash; 2011</div></div>'
+		});
+		var mActions = ce('div', {id: "mail_bar_act", innerHTML: '<span class="fl_l" style="padding-top:4px;">' + user.lang.withSelected + ': </span>',class:"fl_l"}, {display: 'none', paddingTop:"5px"});
+		/*
+		mActions.innerHTML += '<span id="mail_summary" style="display:none;"></span><a href="#" onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</a>';
+		if(user.plotGraphs) {
+			iHTML =  '<span id="plot_graphs_links"> | ';
+			iHTML += '<a href="#" onclick="ui.plotGraph(false);" id="plot_msg_graph_link">' + user.lang.plotMessagesGraph + '</a>';
+			if(user.kbytes) {
+				iHTML += ' | ';
+				iHTML += '<a href="#" onclick="ui.plotGraph(true);" id="plot_kb_graph_link">' + user.lang.plotKbytesGraph + '</a>';
+			}
+			mActions.innerHTML += iHTML + "</span>"
+		}*/
+		
+		mActions.innerHTML += '<span id="mail_summary" style="display:none;"></span>';
+		mActions.innerHTML += '<div class="button_blue fl_l"><button onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</button></div>';
+		if(user.plotGraphs) {
+			iHTML =  '<span id="plot_graphs_links">';
+			iHTML += '<div class="button_blue fl_l" id="plot_msg_graph_link"><button onclick="ui.plotGraph(false);">' + user.lang.plotMessagesGraph + '</button></div>';
+			if(user.kbytes) {
+				iHTML += '<div class="button_blue fl_l" id="plot_kb_graph_link"><button onclick="ui.plotGraph(true);">' + user.lang.plotKbytesGraph + '</button></div>';
+			}
+			mActions.innerHTML += iHTML + "</span>"
+		}		
+		
+		cPane.appendChild(ce('div', {id: "graph"}, {display:'none', width: '100%', height: '400px'}) );
+		cPane.appendChild(mActions);
+		div.appendChild(cPane);
+		
+		var tdiv = ce('div',{id:'mail_rows'});
+		var table = ce('table', {cellspacing: "0", cellpadding: "0", id: 'mail_rows_t'}, {width: '100%'});
+		tdiv.appendChild(table);
+		div.appendChild(tdiv);
+		//<td class="mail_check" onmouseover="mail.checkOver(this, '1767')" onmouseout="mail.checkOut(this, '1767')" onclick="mail.checkChange(this, '1767')" onmousedown="event.cancelBubble = true;">  <div class=""></div></td>
+		tableHTML = '<thead>' + '<th class="mail_check" onmouseover="mail.checkOver(this, 0)" onmouseout="mail.checkOut(this, 0)" onclick="myCheckChange(this, 0)"><div class=""></div><input type="hidden" id="post_check_0"></th>' + 
+			'<th style="text-align: center, width: 30px"> </th>' + 
+			'<th class="messagePicture"> </th>' + 
+			'<th class="messageFrom">' + user.lang.nameCol + '</th>' +
+			'<th onclick="javascript: ui.sort(\'tot\');" style="cursor: pointer">' + user.lang.numberOfMessagesCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'out\');" style="cursor: pointer">' + user.lang.sentCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'in\');" style="cursor: pointer">' + user.lang.receivedCol + '</th>';
+		if(user.kbytes) {
+			tableHTML +=
+			'<th onclick="javascript: ui.sort(\'tot-size\');" style="cursor: pointer">' + user.lang.symbolsCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'out-size\');" style="cursor: pointer">' + user.lang.sentSymbolsCol + '</th>' + 
+			'<th onclick="javascript: ui.sort(\'in-size\');" style="cursor: pointer">' + user.lang.receivedSymbolsCol + '</th>';
+		}
+		
+		tableHTML +=
+			'<th onclick="javascript: ui.sort(\'date\');" style="cursor: pointer">' + user.lang.lastMsgCol + '</th>' + 
+			'</thead>';
+			
+		table.innerHTML  = tableHTML;
+
+		var tbody = ce('tbody');
+		table.appendChild(tbody);
+		
+		var sorted = [statCounter.ALL_ID].concat(this.sortBy(getKeys(stats), sortBy));
+
+		for(var rank = 0; rank < sorted.length; rank ++) {
+			var uid = sorted[rank];
+			
+			sdata = statCounter.getStatData(uid);
+			udata = statCounter.getUserData(uid);
+			
+			var tr = ce('tr', {id: 'mess' + uid});
+			//class="mail_check" onmouseover="mail.checkOver(this, 0)" onmouseout="mail.checkOut(this, 0)"
+			var tdR = ce('td', {innerHTML: uid == statCounter.ALL_ID ? '' : rank}, {textAlign: 'center',  width: "30px"});
+			var tdS = ce('td', {innerHTML: '<div class=""></div><input type="hidden" id="post_check_' + uid + '">', className: 'mail_check'});
+			tdS.setAttribute('onmouseover', "mail.checkOver(this, '" + uid + "')");
+			tdS.setAttribute('onmouseout', "mail.checkOut(this, '" + uid + "')");
+			tdS.setAttribute('onclick', "myCheckChange(this, '" + uid + "')");
+			
+			var tdP = ce('td', {innerHTML: uid == statCounter.ALL_ID ? '' : ('<a href="/id' + uid + '" target="_blank"><img src="' + udata.photo + '" /></a>'), className: 'messagePicture'});
+			var tdN = ce('td', {innerHTML: (uid == statCounter.ALL_ID ? '' : ('<a href="/id' + uid + '" target="_blank">')) + udata.first_name + ' ' + udata.last_name + (uid == statCounter.ALL_ID ? '' : '</a>'), className: 'messageFrom'});
+			var tdT = ce('td', {innerHTML: sdata.inM + sdata.outM});
+			var tdO = ce('td', {innerHTML: sdata.outM});
+			var tdI = ce('td', {innerHTML: sdata.inM});
+			if(user.kbytes) {
+				var tdST = ce('td', {innerHTML: sdata.inSize + sdata.outSize});
+				var tdSO = ce('td', {innerHTML: sdata.outSize});
+				var tdSI = ce('td', {innerHTML: sdata.inSize});
+			}
+			var tdL = ce('td', {innerHTML: '<a href="mail.php?act=show&id=' + sdata.lastMessageId + '" target="_blank">' + formatDate(new Date(sdata.lastMessageDate * 1000)) + '</a>'});
+
+			tr.appendChild(tdS);
+			tr.appendChild(tdR);
+			
+			tr.appendChild(tdP);
+			tr.appendChild(tdN);
+			tr.appendChild(tdT);
+			tr.appendChild(tdO);
+			tr.appendChild(tdI);
+			if(user.kbytes) {
+				tr.appendChild(tdST);
+				tr.appendChild(tdSO);
+				tr.appendChild(tdSI);
+			}
+			tr.appendChild(tdL);
+			tbody.appendChild(tr);
+		}
+	},
+	
+	sort: function(sortBy) {
+		this.displayStats(statCounter.statByUser, statCounter.userData, sortBy);
+	},
+	
+	requestSettings: function() {
+	
+		this.setHeader(user.lang.appName + ' ' + SYS.VERSION);
+		ui.clearContent();
+		this.removeLoggerPane();
+		
+		var mbox = new MessageBox({title: user.lang.settingsText});
+		
+		mbox.addButton(user.lang.startButton,function() {mbox.hide();messageProcessor.start()});
+		
+		var html = '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_verbose" /></div>';
+		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_kbytes" /></div>';
+		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_sort_kbytes" /></div>';
+		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_friends_only" /></div>';
+		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_fancy_graphs" /></div>';
+		
+		mbox.content(html).show();
+		
+		new Checkbox(ge('param_verbose'), {
+			label: user.lang.verbose,
+			checked: 0,
+			onChange: function() {user.verbose=!user.verbose;}
+		});
+		
+		new Checkbox(ge('param_kbytes'), {
+			label: user.lang.kbytes,
+			checked: 1,
+			onChange: function() {user.kbytes = !user.kbytes;}
+		});
+
+		new Checkbox(ge('param_sort_kbytes'), {
+			label: user.lang.sortByKBytes,
+			checked: 0,
+			onChange: function() {user.sortByKBytes = !user.sortByKBytes;}
+		});
+		
+		new Checkbox(ge('param_friends_only'), {
+			label: user.lang.friendsOnly,
+			checked: 0,
+			onChange: function() {user.friendsOnly = !user.friendsOnly;}
+		});
+		
+		new Checkbox(ge('param_fancy_graphs'), {
+			label: user.lang.wantToPlotGraphs,
+			checked: 1,
+			onChange: function() {user.plotGraphs = !user.plotGraphs;}
+		});
+	},
+	
+	addLoggerPane: function(){
+		var t = ce('textarea', {'cols': 80, 'rows': 20, id: 'loggerPane'}, {fontFamily: 'Courier new'});
+		insertAfter(ge('content'), t);
+	},
+	
+	removeLoggerPane: function() {
+		var a = ge('loggerPane');
+		if( a != undefined) {
+			a.parentNode.removeChild(a);
+		}
+	},
+	
+	onNoteNotCreated: function() {
+		ge('mail_top_msg').innerHTML = '<div>'+user.lang.noteFailure+'</div>';
+		show('mail_top_msg');
+		//ge('mail_top_msg').style.display = 'block';
+		//ge('mail_top_msg').style.visibility = 'visible';
+	},
+	
+	onNoteCreated: function(nid) {
+		ge('mail_top_msg').innerHTML = '<div>'+user.lang.noteSuccess + ". <a href=\"/note" + user.uid + '_' + nid + '" target="_blank">' + user.lang.seeNote + '</a></div>';
+		show('mail_top_msg');
+		//ge('mail_top_msg').style.display = 'block';
+		//ge('mail_top_msg').style.visibility = 'visible';
+	},
+	
+	sentColors: [0x67dc3e, 0xf3c740, 0xf0483b],
+	receivedColors: [0x7fc966, 0xedcb65, 0xf06459],
+	
+	plotGraph: function(kBytes) {
+	
+		ge('graph').style.display = '';
+		var commonVars = {
+			isRTL: window.is_rtl,
+			'lang.select_graphs':fixQuot('filter'),
+			'lang.months':fixQuot('January,February,March,April,May,June,July,August,September,October,November,December'),
+			'lang.dayMonths':fixQuot('January,February,March,April,May,June,July,August,September,October,November,December'),
+			'lang.dateFormats.day_fullmon_year_hour':fixQuot('{day} {dayMonth} {year}, {hour12}:00'),
+			'lang.dateFormats.day_fullmon_year':fixQuot('{month} {day}, {year}'),
+			'lang.dateFormats.day_mon':fixQuot('{day} {month}'),
+			'lang.dateFormats.day_fullmon':fixQuot('{day} {month}'),
+			'lang.loading': fixQuot('Loading...'),
+			'lang.no_data': fixQuot('No input data'),
+			'lang.data_empty': fixQuot('Input data is empty'),
+			'lang.error_loading': fixQuot('Loading error')
+		};
+		var params = {
+			allowfullscreen: 'true'
+		};
+		flashVars = clone(commonVars);
+		
+		var table = ge('mail_rows_t');
+		var graphData = '[';
+		var rank = 0;
+		for (var i = 0; i < table.rows.length; ++i) {
+			var row = table.rows[i];
+			var id = row.id ? intval(row.id.replace(/^mess/, '')) : 0;
+			if (id) {
+				if(cur.messChecked[id]) {
+					if(rank > 0) {
+						graphData += ',';
+					}
+					
+					if(kBytes) {
+						var totBytesSent = 0, totBytesRec = 0;
+						var receivedSizes = '{"c": ' + this.receivedColors[rank] + ',"f": 0, "d": [';
+						var sentSizes = '{"c": ' + this.sentColors[rank] + ',"f": 0, "d": [';
+					} else {
+						var totSent = 0, totRec = 0;
+						var sentMessages = '{"c": ' + this.sentColors[rank] + ',"f": 0, "d": [';
+						var receivedMessages = '{"c": ' + this.receivedColors[rank] + ',"f": 0, "d": [';
+					}
+					for(var entry in statCounter.getStatData(id).history) {
+						var histData = statCounter.getStatData(id).history[entry]
+						
+						if(kBytes) {
+							totBytesSent += histData.outSize;
+							totBytesRec += histData.inSize;
+							sentSizes += '[' + entry + ',' + totBytesSent + '],';
+							receivedSizes += '[' + entry + ',' + totBytesRec + '],';
+						} else {
+							totSent += histData.outM;
+							totRec += histData.inM;
+							sentMessages += '[' + entry + ',' + totSent + '],';
+							receivedMessages += '[' + entry + ',' + totRec + '],';
+						}
+					}
+					
+					
+					
+					if(kBytes) {
+						sentSizes += '[' + statCounter.lastMessageTime + ',' + totBytesSent + ']], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.sentCol + '"}';
+						receivedSizes += '[' + statCounter.lastMessageTime + ',' + totBytesRec + ']], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.receivedCol + '"}';
+						graphData += sentSizes + ',' + receivedSizes;
+					} else {
+						sentMessages += '[' + statCounter.lastMessageTime + ',' + totSent + ']], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.sentCol + '"}';
+						receivedMessages += '[' + statCounter.lastMessageTime + ',' + totRec + ']], "name": "' + statCounter.getUserData(id).first_name + ' ' + statCounter.getUserData(id).last_name + ': ' + user.lang.receivedCol + '"}';
+						graphData += sentMessages + ',' + receivedMessages;
+					}
+					
+					rank ++;
+				}
+			}
+		}
+		flashVars.graphdata = fixQuot(graphData + ']');
+		if(user.verbose) {
+			SYS.log('plotting: ' + flashVars.graphdata);
+		}
+		flashVars.div_id = 'graph';
+		
+		var opts = {
+		  url: '/swf/graph.swf?0.28',
+		  id: 'graph',
+		  width: "100%",
+		  height: 400,
+		  version: 8
+		}
+		renderFlash('graph', opts, params, flashVars);		
+	}
+};var statCounter = {
+	statByUser: {},
+	userData: {},
+	lastMessageTime: 0,
+	overallStats: {
+		inM: 0,
+		outM: 0,
+		lastMessageDate: 0,
+		lastMessageId: 0,
+		inSize: 0,
+		outSize: 0,
+		history: {}
+	},
+	ALL_ID: -1,
+	
+	createEmptyStatsFor: function(message) {
+		var newStats = {
+			inM: 0,
+			outM: 0,
+			lastMessageDate: message.date,
+			lastMessageId: message.mid,
+			inSize: 0,
+			outSize: 0,
+			history: {}
+			// TODO: add words distribution
+		};
+		this.statByUser[message.uid] = newStats;
+		return newStats;
+	},
+	
+	updateStats: function(message, userStats) {
+		if(userStats.lastMessageDate < message.date) {
+			userStats.lastMessageDate = message.date;
+			userStats.lastMessageId = message.mid;
+		}
+		
+		if(statCounter.lastMessageTime < message.date) {
+			statCounter.lastMessageTime = message.date;
+		}
+		
+		if(!message.out) {
+			userStats.inM ++;
+			userStats.inSize += message.body.length;
+		} else {
+			userStats.outM ++;
+			userStats.outSize += message.body.length;
+		}
+		if(user.plotGraphs) {
+			userStats.history[message.date] = {inM: message.out ? 0 : 1, outM: message.out ? 1 : 0, inSize: message.out ? 0 : message.body.length, outSize: message.out ? message.body.length : 0};
+		}
+	},
+	
+	processSingleMessage: function(message) {
+		userStats = this.statByUser[message.uid];
+		if(userStats == undefined) {
+			userStats = this.createEmptyStatsFor(message);
+		}
+		this.updateStats(message, userStats);
+		this.updateStats(message, this.overallStats);
+		
+	},
+	
+	getStatData: function(id) {
+		if(id == this.ALL_ID) {
+			return this.overallStats;
+		}
+		
+		return this.statByUser[id];
+	},
+	
+	getUserData: function(id) {
+		if(id == this.ALL_ID) {
+			return {first_name: user.lang.totalFirstName, last_name : user.lang.totalLastName};
+		}
+		
+		return (this.userData[id] == undefined ? {first_name: 'DELETED', last_name : 'DELETED'} : this.userData[id]);
+	},
+	
+	generateNoteContents: function() {
+		var value = "[[club21792535|vkontakte-stats]]\n\n";
+		value += "{|\n";
+		value += "|-\n";
+		value += "! ";
+		value += "!! " + user.lang.nameCol;
+		value += "!! " + user.lang.numberOfMessagesCol;
+		value += "!! " + user.lang.sentCol;
+		value += "!! " + user.lang.receivedCol
+		if(user.kbytes) {
+			value += "!! " + user.lang.symbolsCol;
+			value += "!! " + user.lang.sentSymbolsCol;
+			value += "!! " + user.lang.receivedSymbolsCol;
+		}
+		
+		value += "\n";
+		
+		var rank = 0;
+		var table = ge('mail_rows_t');
+		for (var i = 0; i < table.rows.length; ++i) {
+			var row = table.rows[i];
+			var id = row.id ? row.id.replace(/^mess/, '') : 0;
+			if (id != 0) {
+				if(id != this.ALL_ID) {
+					rank++;
+				}
+				if(cur.messChecked[id]) {
+					
+					sdata = this.getStatData(id);
+					udata = this.getUserData(id);
+					
+					value += "|-\n";
+					value += "| " + (id != this.ALL_ID ? rank : '') + "\n";
+					value += "| [[id" + id + "|" + udata.first_name + ' ' + udata.last_name + "]]\n";
+					value += "| " + (sdata.inM + sdata.outM) + "\n";
+					value += "| " + sdata.outM + "\n";
+					value += "| " + sdata.inM + "\n";
+					if(user.kbytes) {
+						value += "| " + (sdata.inSize + sdata.outSize) + "\n";
+						value += "| " + sdata.outSize + "\n";
+						value += "| " + sdata.inSize + "\n";
+					}
+				}
+			}	
+		}
+		
+		value += "|}\n";
+		
+		return value;
+	},
+	
+	exportToNote: function() {
+		apiConnector.createNote(user.lang.appName, this.generateNoteContents(), function(ao, rt) {
+			var parsedResponse = eval('(' + rt + ')');
+			if(parsedResponse.response == undefined) {
+				SYS.log('Note creationg failed!' + rt);
+				ui.onNoteNotCreated();
+			} else {
+				var nid = parsedResponse.response.nid;
+				if(user.verbose) {
+					SYS.log('Note created: ' + nid);
+				}
+				ui.onNoteCreated(nid);
+			}
+		})
+	}
+};var messageProcessor = {
+
+	incomingMessages: undefined,
+	processedIncomingMessages: 0,
+	outgoingMessages: undefined,
+	processedOutgoingMessages: 0,
+	failed: 0,
+	
+	onUserProfilesLoaded: function(response) {
+		var parsedResponse = eval('(' + response + ')');
+		if(parsedResponse.response == undefined) {
+			SYS.fatal(response);
+		}
+		
+		parsedResponse = parsedResponse.response;
+		
+		for(var i = 0; i < parsedResponse.length; i ++) {
+			statCounter.userData[parsedResponse[i].uid] = parsedResponse[i];
+		}
+		
+		this.pendingUserDataRequests--;
+		
+		if(user.verbose) {
+			SYS.log('Got user profile data, ' + (this.pendingUserDataRequest) + ' goes remaining');
+		}
+		
+		if(this.pendingUserDataRequests <= 0) {
+			ui.setHeader(user.lang.done + '!');
+			ui.displayStats(statCounter.statByUser, statCounter.userData, user.kbytes && user.sortByKBytes ? 'tot-size' : 'tot');
+		}
+		
+	},
+	
+	onAllMessagesLoaded: function() {
+		ui.updateProgressBar(this.processedIncomingMessages, this.incomingMessages, this.processedOutgoingMessages, this.outgoingMessages);
+		
+		ui.setHeader(user.lang.gettingNames + '...');
+		
+		if(user.verbose) {
+			SYS.log('Got all messages, getting user names');
+		}
+		
+		this.api.getUserNames(getKeys(statCounter.statByUser),function(ao,rt) {messageProcessor.onUserProfilesLoaded(rt);});
+	},
+	
+	onMessagesLoaded: function(parsedResponse, out) {
+	
+		var offset = 0;
+		
+		if (parsedResponse == undefined) {
+		
+			this.failed += SYS.MESSAGES_PER_REQUEST;
+			SYS.log('Skipping ' + SYS.MESSAGES_PER_REQUEST + ' messages...');
+
+			if (!out) {
+				this.processedIncomingMessages += SYS.MESSAGES_PER_REQUEST;
+				offset = this.offset + SYS.MESSAGES_PER_REQUEST;
+			} else {
+				this.processedOutgoingMessages += SYS.MESSAGES_PER_REQUEST;
+				offset = this.offset + SYS.MESSAGES_PER_REQUEST;
+			}
+
+		} else if (parsedResponse.response != undefined) {
+		
+			var response = parsedResponse.response;
+			var currentMessages = response[0];
+			
+			if(user.verbose) {
+				SYS.log('Got ' + (response.length - 1) + ' messages');
+			}
+			
+			for(var i = 1; i < response.length; i ++) {
+				statCounter.processSingleMessage(response[i]);
+			}
+			
+			
+			if(!out) {
+				this.processedIncomingMessages += response.length - 1;
+				offset = this.processedIncomingMessages + (currentMessages - this.incomingMessages);
+				
+				if(currentMessages != this.incomingMessages && user.verbose) {
+					SYS.log('By the way, the user has received ' + (currentMessages - this.incomingMessages) + ' message(s) after the script was started');
+				}
+				
+				if(offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
+					out = 1;
+					offset = 0;
+				}
+			} else {
+				this.processedOutgoingMessages += response.length - 1;
+				offset = this.processedOutgoingMessages + (currentMessages - this.outgoingMessages);
+				
+				if(currentMessages != this.outgoingMessages && user.verbose) {
+					SYS.log('By the way, the user has sent ' + (currentMessages - this.outgoingMessages) + ' message(s) after the script was started');
+				}
+				
+				if(offset >= currentMessages || (SYS.DEBUG && offset >= SYS.MESSAGES_TO_PROCESS_IN_DEBUG_MODE)) {
+					this.onAllMessagesLoaded();
+					return;
+				}
+			}
+			
+			ui.updateProgressBar(this.processedIncomingMessages, this.incomingMessages, this.processedOutgoingMessages, this.outgoingMessages);
+		} else {
+			out = this.out;
+			offset = this.offset;
+		}
+		
+		
+		
+		var elapsedTime = (new Date()).getTime() - this.requestStartTime;
+		
+		if(user.verbose) {
+			SYS.log('Elapsed time:  ' + elapsedTime + ' ms');
+		}
+		
+		if(elapsedTime >= SYS.MSEC_BETWEEN_REQUESTS) {
+			if(user.verbose) {
+				SYS.log('Starting new request...');
+			}
+			this.requestStartTime = (new Date()).getTime();
+			this.api.getMessages(out, offset, SYS.MESSAGES_PER_REQUEST, function(response) {messageProcessor.onMessagesLoaded(response, out)});
+		} else {
+			this.out = out;
+			this.offset = offset;
+			if(user.verbose) {
+				SYS.log('Scheduling new request in ' + (SYS.MSEC_BETWEEN_REQUESTS - elapsedTime) + 'ms');
+			}
+			setTimeout("messageProcessor.requestStartTime = (new Date()).getTime(); messageProcessor.api.getMessages(messageProcessor.out, messageProcessor.offset, SYS.MESSAGES_PER_REQUEST, function(response) {messageProcessor.onMessagesLoaded(response, messageProcessor.out)});", SYS.MSEC_BETWEEN_REQUESTS - elapsedTime);
+		}
+	},
+	
+	startProcessingMessages: function() {
+		ui.setHeader(user.lang.processingMessages + '...');
+		ui.createProgressBar();
+		ui.updateProgressBar(0, this.incomingMessages, 0, this.outgoingMessages);
+		this.requestStartTime = (new Date()).getTime();
+		
+		this.api.getMessages(0, 0, SYS.MESSAGES_PER_REQUEST, function(response) {messageProcessor.onMessagesLoaded(response, 0)});
+	},
+
+	onMessageNumbersLoaded: function(parsedResponse, out) {
+		var response = parsedResponse.response;
+		
+		if(user.verbose) {
+			SYS.log('Loaded message numbers [' + out + ']: ' + response[0]);
+		}
+		
+		if(!out) {
+			this.incomingMessages = response[0];
+		} else {
+			this.outgoingMessages = response[0];
+		}
+		
+		if(this.incomingMessages != undefined && this.outgoingMessages != undefined) {
+			setTimeout(function() {messageProcessor.startProcessingMessages()}, SYS.MSEC_BETWEEN_REQUESTS);
+		}
+	},
+
+	getNumberOfMessages: function() {
+		this.api.getMessages(0, 0, 1, function(response) {messageProcessor.onMessageNumbersLoaded(response, 0)});
+		setTimeout(function() {apiConnector.getMessages(1, 0, 1, function(response) {messageProcessor.onMessageNumbersLoaded(response, 1)})}, SYS.MSEC_BETWEEN_REQUESTS * 2);
+	},
+
+	start: function() {
+	
+		this.api = apiConnector;
+	
+		if(user.verbose) {
+			ui.addLoggerPane();
+			SYS.log('Started');
+		}
+
+		ui.setHeader(user.lang.loadingMessageNumbers);
+		this.getNumberOfMessages();
+	}
+};function Ajax(onDone, onFail, eval_res){// From old common.js
+ var _t = this;
+ this.onDone = onDone;
+ this.onFail = onFail;
+ var tram = null;
+ try { tram = new XMLHttpRequest(); }
+ catch(e) { tram = null; }
+ if (!tram) {
+  try { if(!tram) tram = new ActiveXObject("Msxml2.XMLHTTP"); }
+  catch(e) { tram = null; }
+ }
+ if (!tram) {
+  try { if(!tram) tram = new ActiveXObject("Microsoft.XMLHTTP"); }
+  catch(e) { tram = null; }
+ }
+
+ var readystatechange = function(url, data) {
+    if(tram.readyState == 4 ) {
+     if(tram.status >= 200 && tram.status < 300) {
+       if(eval_res) parseRes();
+       if( _t.onDone ) _t.onDone(extend(_t, {url: url, data: data}), tram.responseText);
+     } else {
+       _t.status = tram.status;
+       _t.readyState = tram.readyState;
+       if( _t.onFail ) _t.onFail(extend(_t, {url: url, data: data}), tram.responseText);
+     }
+   }
+ };
+
+ var parseRes = function(){
+   if(!tram || !tram.responseText)return;
+   var res = tram.responseText.replace(/^[\s\n]+/g, '');
+
+   if(res.substr(0,10)=="<noscript>")
+   {
+     try{
+       var arr = res.substr(10).split("</noscript>");
+       eval(arr[0]);
+       tram.responseText = arr[1];
+     }catch(e){
+       debugLog('eval ajax script:' + e.message);
+     }
+   }else{}
+  };
+  this.get = function(u, d, f){
+   tram.onreadystatechange = function(){ readystatechange(u, d); };
+   f = f || false;
+   var q = (typeof(d) != 'string') ? ajx2q(d) : d;
+   u = u + (q ? ('?'+q) : '');
+   tram.open('GET', u, !f);
+
+   tram.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+   tram.send('');
+  };
+  this.post = function(u, d, f){
+   tram.onreadystatechange = function(){ readystatechange(u, d); };
+   f = f || false;
+   var q = (typeof(d) != 'string') ? ajx2q(d) : d;
+   try {
+     tram.open('POST', u, !f);
+   } catch(e) {
+     debugLog('ajax post error: '+e.message);
+   }
+   tram.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+   tram.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+   tram.send(q);
+  };
+}
+
+var apiConnector = {
+
+	API_ADDRESS: '/api.php',
+	API_VERSION: '3.0',
+	LOGON_FAIL_STRING: 'login_fail',
+	LOGON_SUCCESS_STRING: 'login_success',
+	NOT_USED_SETTING:32768,
+	
+	logon: function(appId, settings) {
+	
+		this.appId = appId;
+		this.settings = settings;
+		
+		var logonFrame = ce("iframe", {
+			src: '/login.php?app=' + appId + '&layout=popup&type=browser&settings=' + settings
+		}, {position: 'relative', width: '100%', height: '500px'});
+		logonFrame.setAttribute('onload', "apiConnector.onLogonFrameLoaded()");//this.contentWindow.location.href
+		
+		ui.setHeader(user.lang.authorizing + '...');
+		
+		ui.clearContent();
+		ui.appendContentElement(logonFrame);
+		
+		
+	},
+	
+	onLogonFrameLoaded: function(frameLocation) {
+		var ajax = new Ajax();
+		
+		var onlogin=function(r,t) {
+			var res='{' + t.split('app_session = {')[1].split('}')[0] + '}';
+			sessionInfo=eval('(' + res + ')');
+			user.uid = sessionInfo.mid;
+			apiConnector.secret = sessionInfo.secret;
+			apiConnector.sid = sessionInfo.sid;
+			
+			ui.setHeader(user.lang.authorized);
+			ui.clearContent();
+			
+			ui.requestSettings();			
+		}
+		var oncheck=function(r,t) {
+			if (t.indexOf('Login failure')!=-1){
+				SYS.fatal('failed to log on. ');
+			} else if (t.indexOf('Login success')!=-1){	
+				ajax.onDone = onlogin;
+				ajax.get('/login.php?app=' + apiConnector.appId + '&layout=popup&type=browser&settings='+apiConnector.NOT_USED_SETTING);					
+			}	
+		}
+		ajax.onDone = oncheck;
+		ajax.get('/login.php?app=' + apiConnector.appId + '&layout=popup&type=browser&settings=' + apiConnector.settings);
+	},
+	
+	getMessages: function(out, offset, count, onDone) {
+		if(user.verbose) {
+			SYS.log('getMessages invoked: out=' + out + "; offset=" + offset);
+		}
+
+		var toMd5 = user.uid;
+		
+		var previewLength = user.kbytes ? 0 : 1;
+		
+		toMd5 += 'api_id' + '=' + this.appId;
+		toMd5 += 'count=' + count;
+		if(user.friendsOnly) {
+			toMd5  += 'filters=4';
+		}
+		toMd5 += 'format=JSON';
+		toMd5 += 'method=messages.get';
+		toMd5 += 'offset=' + offset;
+		toMd5 += 'out=' + out;
+		toMd5 += 'preview_length=' + previewLength;
+		toMd5 += 'v=' + this.API_VERSION,
+		toMd5 += this.secret;
+		
+		var ajax = new Ajax();
+		ajax.onDone = function(ao,rt) {
+			var parsedResponse;
+			try {
+				parsedResponse = eval('(' + rt + ')');
+			} catch (e) {
+				SYS.log("Failed to parse JSON response: [" + e + "] " + rt);
+			}
+
+			if (parsedResponse == undefined) {
+				onDone();
+			} else if (parsedResponse.error != undefined) {
+				if(parsedResponse.error.error_code == SYS.TOO_MANY_REQUESTS_ERR_CODE) {
+					if(user.verbose) {
+						SYS.log('too many requests: ' + rt);
+					}
+					onDone({});
+				} else {
+					SYS.fatal(rt);
+				}
+			} else {
+				onDone(parsedResponse);
+			}
+		};
+		
+		
+		params = {
+			api_id: apiConnector.appId,
+			count: count,
+			format: 'JSON',
+			method: 'messages.get',
+			offset: offset,
+			out:out,
+			preview_length: previewLength,
+			sid: apiConnector.sid,
+			sig: md5(toMd5),
+			v: this.API_VERSION
+		};
+		
+		if(user.friendsOnly) {
+			params.filters = 4;
+		}
+		
+		ajax.post(this.API_ADDRESS, params);
+	},
+	
+	doGetUserData: function(ids, onDone) {
+		if(user.verbose) {
+			SYS.log('doGetUserData invoked: ids=' + ids);
+		}
+		var toMd5 = user.uid;
+		
+		toMd5 += 'api_id' + '=' + this.appId;
+		toMd5 += 'fields=photo';
+		toMd5 += 'format=JSON';
+		toMd5 += 'method=getProfiles';
+		
+		var uids = ids.join(',');
+		toMd5 += 'uids=' + uids;
+		
+		toMd5 += 'v=' + this.API_VERSION;
+		toMd5 += this.secret;
+		
+		var ajax = new Ajax();
+		ajax.onDone = onDone;
+		
+		ajax.post(this.API_ADDRESS, {
+			api_id: apiConnector.appId,
+			fields: 'photo',
+			format: 'JSON',
+			method: 'getProfiles',
+			sid: apiConnector.sid,
+			sig: md5(toMd5),
+			uids: uids,
+			v: this.API_VERSION
+		});
+		
+	},
+	
+	getUserNames: function(ids, onDone) {
+		ids = splitArrayToSubArrays(ids, SYS.MAX_USERS_PER_REQUEST);
+		this.onDone = onDone;
+		messageProcessor.pendingUserDataRequests = ids.length;
+		for(var i = 0; i < ids.length; i ++) {
+			setTimeout('apiConnector.doGetUserData([' + ids[i] + '], apiConnector.onDone)', (i + 1) * SYS.MSEC_BETWEEN_REQUESTS_FOR_USERDATA);
+		}
+	},
+	
+	createNote: function(title, text, onDone) {
+		if(user.verbose) {
+			SYS.log('createNote invoked: title=' + title + '; text=' + text);
+		}
+		var toMd5 = user.uid;
+		
+		toMd5 += 'api_id' + '=' + this.appId;
+		toMd5 += 'format=JSON';
+		toMd5 += 'method=notes.add';
+		
+		toMd5 += 'text=' + text;
+		toMd5 += 'title=' + title;
+		
+		toMd5 += 'v=' + this.API_VERSION;
+		toMd5 += this.secret;
+		
+		var ajax = new Ajax();
+		ajax.onDone = onDone;
+		
+		ajax.post(this.API_ADDRESS, {
+			api_id: apiConnector.appId,
+			format: 'JSON',
+			method: 'notes.add',
+			sid: apiConnector.sid,
+			sig: md5(toMd5),
+			text: text,
+			title: title,
+			v: this.API_VERSION
+		});
+	}
+};if (window.renderFlash){
+	stManager.add(['mail.css','mail.js','ui_controls.js','ui_controls.css'], function() {
+		apiConnector.logon(SYS.APP_ID, SYS.LOGIN_SETTING);
+	});
+} else {
+	alert(user.lang.wrongPage);
+}
