@@ -4,7 +4,8 @@ var ui = {
 	},
 
 	setHeader: function(string) {
-		ge('header').innerHTML = string;
+		show('header');
+		ge('title').innerHTML = string;
 		this.setTitle(string);
 	},
 	
@@ -114,15 +115,16 @@ var ui = {
 	
 	displayStats: function(stats, userData, sortBy) {
 	
-		messagesChecked = 0;actionsShown = false;
+		 cur.messCheckedNum = 0; actionsShown = false;
 	
 		this.clearContent();
-	
-		ge('sideBar').style.display = 'none';
-		ge('pageBody').style.width = '96%';
-		
+		handlePageView({width:950});
+		/*
+		ge('side_bar').style.display = 'none';
+		ge('page_body').style.width = '96%';
+		*/
 		var div = ce('div', {className: 'mailbox'});
-		div.innerHTML += '<div id="message" class="message" style="visibility:hidden; display:none;"> </div> ';
+		div.innerHTML += '<div id="mail_top_msg" class="message" style="display:none;"> </div> ';
 		
 		this.appendContentElement(div);
 		
@@ -131,12 +133,12 @@ var ui = {
 			SYS.log('Processing complete, rendering results');
 		}
 		
-		var cPane = ce('div', {className: 'bar clearFix actionBar', innerHTML:
-			user.lang.thankYou + (messageProcessor.failed > 0 ? ' ' + user.lang.warning + ': ' + messageProcessor.failed : '') + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010 &ndash; 2011</div>'
+		var cPane = ce('div', {id:"mail_bar", className: 'clear_fix bar bar clearFix actionBar', innerHTML:
+			'<div id="vkstats_text"><span>' + user.lang.thankYou + '</span>' + (messageProcessor.failed > 0 ? ' ' + user.lang.warning + ': ' + messageProcessor.failed : '') + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010 &ndash; 2011</div></div>'
 		});
-		var mActions = ce('div', {id: "message_actions", innerHTML: user.lang.withSelected + ': '}, {visibility: 'hidden'});
-		
-		mActions.innerHTML += '<a href="#" onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</a>';
+		var mActions = ce('div', {id: "mail_bar_act", innerHTML: '<span class="fl_l" style="padding-top:4px;">' + user.lang.withSelected + ': </span>',class:"fl_l"}, {display: 'none', paddingTop:"5px"});
+		/*
+		mActions.innerHTML += '<span id="mail_summary" style="display:none;"></span><a href="#" onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</a>';
 		if(user.plotGraphs) {
 			iHTML =  '<span id="plot_graphs_links"> | ';
 			iHTML += '<a href="#" onclick="ui.plotGraph(false);" id="plot_msg_graph_link">' + user.lang.plotMessagesGraph + '</a>';
@@ -145,18 +147,29 @@ var ui = {
 				iHTML += '<a href="#" onclick="ui.plotGraph(true);" id="plot_kb_graph_link">' + user.lang.plotKbytesGraph + '</a>';
 			}
 			mActions.innerHTML += iHTML + "</span>"
-		}
+		}*/
 		
+		mActions.innerHTML += '<span id="mail_summary" style="display:none;"></span>';
+		mActions.innerHTML += '<div class="button_blue fl_l"><button onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</button></div>';
+		if(user.plotGraphs) {
+			iHTML =  '<span id="plot_graphs_links">';
+			iHTML += '<div class="button_blue fl_l" id="plot_msg_graph_link"><button onclick="ui.plotGraph(false);">' + user.lang.plotMessagesGraph + '</button></div>';
+			if(user.kbytes) {
+				iHTML += '<div class="button_blue fl_l" id="plot_kb_graph_link"><button onclick="ui.plotGraph(true);">' + user.lang.plotKbytesGraph + '</button></div>';
+			}
+			mActions.innerHTML += iHTML + "</span>"
+		}		
 		
 		cPane.appendChild(ce('div', {id: "graph"}, {display:'none', width: '100%', height: '400px'}) );
 		cPane.appendChild(mActions);
 		div.appendChild(cPane);
 		
-		var table = ce('table', {cellspacing: "0", cellpadding: "0", id: 'messages_rows'}, {width: '100%'});
-		
-		div.appendChild(table);
-		
-		tableHTML = '<thead>' + '<th class="msg_check" onmouseover="checkOver(this, 0)" onmouseout="checkOut(this, 0)" onclick="myCheckChange(this, 0)"><div class=""></div><input type="hidden" id="post_check_0"></th>' + 
+		var tdiv = ce('div',{id:'mail_rows'});
+		var table = ce('table', {cellspacing: "0", cellpadding: "0", id: 'mail_rows_t'}, {width: '100%'});
+		tdiv.appendChild(table);
+		div.appendChild(tdiv);
+		//<td class="mail_check" onmouseover="mail.checkOver(this, '1767')" onmouseout="mail.checkOut(this, '1767')" onclick="mail.checkChange(this, '1767')" onmousedown="event.cancelBubble = true;">  <div class=""></div></td>
+		tableHTML = '<thead>' + '<th class="mail_check" onmouseover="mail.checkOver(this, 0)" onmouseout="mail.checkOut(this, 0)" onclick="myCheckChange(this, 0)"><div class=""></div><input type="hidden" id="post_check_0"></th>' + 
 			'<th style="text-align: center, width: 30px"> </th>' + 
 			'<th class="messagePicture"> </th>' + 
 			'<th class="messageFrom">' + user.lang.nameCol + '</th>' +
@@ -188,11 +201,11 @@ var ui = {
 			udata = statCounter.getUserData(uid);
 			
 			var tr = ce('tr', {id: 'mess' + uid});
-			
+			//class="mail_check" onmouseover="mail.checkOver(this, 0)" onmouseout="mail.checkOut(this, 0)"
 			var tdR = ce('td', {innerHTML: uid == statCounter.ALL_ID ? '' : rank}, {textAlign: 'center',  width: "30px"});
-			var tdS = ce('td', {innerHTML: '<div class=""></div><input type="hidden" id="post_check_' + uid + '">', className: 'msg_check'});
-			tdS.setAttribute('onmouseover', "checkOver(this, '" + uid + "')");
-			tdS.setAttribute('onmouseout', "checkOut(this, '" + uid + "')");
+			var tdS = ce('td', {innerHTML: '<div class=""></div><input type="hidden" id="post_check_' + uid + '">', className: 'mail_check'});
+			tdS.setAttribute('onmouseover', "mail.checkOver(this, '" + uid + "')");
+			tdS.setAttribute('onmouseout', "mail.checkOut(this, '" + uid + "')");
 			tdS.setAttribute('onclick', "myCheckChange(this, '" + uid + "')");
 			
 			var tdP = ce('td', {innerHTML: uid == statCounter.ALL_ID ? '' : ('<a href="/id' + uid + '" target="_blank"><img src="' + udata.photo + '" /></a>'), className: 'messagePicture'});
@@ -237,7 +250,7 @@ var ui = {
 		
 		var mbox = new MessageBox({title: user.lang.settingsText});
 		
-		mbox.addButton({label: user.lang.startButton, onClick: function() {mbox.hide();messageProcessor.start()}});
+		mbox.addButton(user.lang.startButton,function() {mbox.hide();messageProcessor.start()});
 		
 		var html = '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_verbose" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_kbytes" /></div>';
@@ -291,15 +304,17 @@ var ui = {
 	},
 	
 	onNoteNotCreated: function() {
-		ge('message').innerHTML = user.lang.noteFailure;
-		ge('message').style.display = 'block';
-		ge('message').style.visibility = 'visible';
+		ge('mail_top_msg').innerHTML = '<div>'+user.lang.noteFailure+'</div>';
+		show('mail_top_msg');
+		//ge('mail_top_msg').style.display = 'block';
+		//ge('mail_top_msg').style.visibility = 'visible';
 	},
 	
 	onNoteCreated: function(nid) {
-		ge('message').innerHTML = user.lang.noteSuccess + ". <a href=\"/note" + user.uid + '_' + nid + '" target="_blank">' + user.lang.seeNote + '</a>';
-		ge('message').style.display = 'block';
-		ge('message').style.visibility = 'visible';
+		ge('mail_top_msg').innerHTML = '<div>'+user.lang.noteSuccess + ". <a href=\"/note" + user.uid + '_' + nid + '" target="_blank">' + user.lang.seeNote + '</a></div>';
+		show('mail_top_msg');
+		//ge('mail_top_msg').style.display = 'block';
+		//ge('mail_top_msg').style.visibility = 'visible';
 	},
 	
 	sentColors: [0x67dc3e, 0xf3c740, 0xf0483b],
@@ -327,14 +342,14 @@ var ui = {
 		};
 		flashVars = clone(commonVars);
 		
-		var table = ge('messages_rows');
+		var table = ge('mail_rows_t');
 		var graphData = '[';
 		var rank = 0;
 		for (var i = 0; i < table.rows.length; ++i) {
 			var row = table.rows[i];
 			var id = row.id ? intval(row.id.replace(/^mess/, '')) : 0;
 			if (id) {
-				if(intval(ge('post_check_' + id).value)) {
+				if(cur.messChecked[id]) {
 					if(rank > 0) {
 						graphData += ',';
 					}
@@ -385,7 +400,14 @@ var ui = {
 			SYS.log('plotting: ' + flashVars.graphdata);
 		}
 		flashVars.div_id = 'graph';
-		swfobject.embedSWF("/swf/graph.swf?0.28", "graph", "100%", "400px", "8", "", flashVars, params);
 		
+		var opts = {
+		  url: '/swf/graph.swf?0.28',
+		  id: 'graph',
+		  width: "100%",
+		  height: 400,
+		  version: 8
+		}
+		renderFlash('graph', opts, params, flashVars);		
 	}
 };

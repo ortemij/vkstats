@@ -1,18 +1,89 @@
+function Ajax(onDone, onFail, eval_res){// From old common.js
+ var _t = this;
+ this.onDone = onDone;
+ this.onFail = onFail;
+ var tram = null;
+ try { tram = new XMLHttpRequest(); }
+ catch(e) { tram = null; }
+ if (!tram) {
+  try { if(!tram) tram = new ActiveXObject("Msxml2.XMLHTTP"); }
+  catch(e) { tram = null; }
+ }
+ if (!tram) {
+  try { if(!tram) tram = new ActiveXObject("Microsoft.XMLHTTP"); }
+  catch(e) { tram = null; }
+ }
+
+ var readystatechange = function(url, data) {
+    if(tram.readyState == 4 ) {
+     if(tram.status >= 200 && tram.status < 300) {
+       if(eval_res) parseRes();
+       if( _t.onDone ) _t.onDone(extend(_t, {url: url, data: data}), tram.responseText);
+     } else {
+       _t.status = tram.status;
+       _t.readyState = tram.readyState;
+       if( _t.onFail ) _t.onFail(extend(_t, {url: url, data: data}), tram.responseText);
+     }
+   }
+ };
+
+ var parseRes = function(){
+   if(!tram || !tram.responseText)return;
+   var res = tram.responseText.replace(/^[\s\n]+/g, '');
+
+   if(res.substr(0,10)=="<noscript>")
+   {
+     try{
+       var arr = res.substr(10).split("</noscript>");
+       eval(arr[0]);
+       tram.responseText = arr[1];
+     }catch(e){
+       debugLog('eval ajax script:' + e.message);
+     }
+   }else{}
+  };
+  this.get = function(u, d, f){
+   tram.onreadystatechange = function(){ readystatechange(u, d); };
+   f = f || false;
+   var q = (typeof(d) != 'string') ? ajx2q(d) : d;
+   u = u + (q ? ('?'+q) : '');
+   tram.open('GET', u, !f);
+
+   tram.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+   tram.send('');
+  };
+  this.post = function(u, d, f){
+   tram.onreadystatechange = function(){ readystatechange(u, d); };
+   f = f || false;
+   var q = (typeof(d) != 'string') ? ajx2q(d) : d;
+   try {
+     tram.open('POST', u, !f);
+   } catch(e) {
+     debugLog('ajax post error: '+e.message);
+   }
+   tram.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+   tram.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+   tram.send(q);
+  };
+}
+
 var apiConnector = {
 
 	API_ADDRESS: '/api.php',
 	API_VERSION: '3.0',
 	LOGON_FAIL_STRING: 'login_fail',
 	LOGON_SUCCESS_STRING: 'login_success',
-
+	NOT_USED_SETTING:32768,
+	
 	logon: function(appId, settings) {
 	
 		this.appId = appId;
+		this.settings = settings;
 		
 		var logonFrame = ce("iframe", {
 			src: '/login.php?app=' + appId + '&layout=popup&type=browser&settings=' + settings
 		}, {position: 'relative', width: '100%', height: '500px'});
-		logonFrame.setAttribute('onload', "apiConnector.onLogonFrameLoaded(this.contentWindow.location.href)");
+		logonFrame.setAttribute('onload', "apiConnector.onLogonFrameLoaded()");//this.contentWindow.location.href
 		
 		ui.setHeader(user.lang.authorizing + '...');
 		
@@ -23,27 +94,30 @@ var apiConnector = {
 	},
 	
 	onLogonFrameLoaded: function(frameLocation) {
-		var location = unescape(frameLocation);
-		if(location.indexOf(this.LOGON_FAIL_STRING) != -1) {
-			SYS.fatal('failed to log on: ' + location);
-		}
+		var ajax = new Ajax();
 		
-		if(location.indexOf(this.LOGON_SUCCESS_STRING) != -1) {
-		
-			sessionInfo = eval('(' + location.split('#')[1].split('=')[1] + ')');
-			
+		var onlogin=function(r,t) {
+			var res='{' + t.split('app_session = {')[1].split('}')[0] + '}';
+			sessionInfo=eval('(' + res + ')');
 			user.uid = sessionInfo.mid;
-			this.secret = sessionInfo.secret;
-			this.sid = sessionInfo.sid;
+			apiConnector.secret = sessionInfo.secret;
+			apiConnector.sid = sessionInfo.sid;
 			
 			ui.setHeader(user.lang.authorized);
 			ui.clearContent();
 			
-			ui.requestSettings();
-			
-		} else {
-			//Waiting for the user to hit 'Allow'
+			ui.requestSettings();			
 		}
+		var oncheck=function(r,t) {
+			if (t.indexOf('Login failure')!=-1){
+				SYS.fatal('failed to log on. ');
+			} else if (t.indexOf('Login success')!=-1){	
+				ajax.onDone = onlogin;
+				ajax.get('/login.php?app=' + apiConnector.appId + '&layout=popup&type=browser&settings='+apiConnector.NOT_USED_SETTING);					
+			}	
+		}
+		ajax.onDone = oncheck;
+		ajax.get('/login.php?app=' + apiConnector.appId + '&layout=popup&type=browser&settings=' + apiConnector.settings);
 	},
 	
 	getMessages: function(out, offset, count, onDone) {

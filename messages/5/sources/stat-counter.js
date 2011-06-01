@@ -94,7 +94,7 @@ var statCounter = {
 		value += "\n";
 		
 		var rank = 0;
-		var table = ge('messages_rows');
+		var table = ge('mail_rows_t');
 		for (var i = 0; i < table.rows.length; ++i) {
 			var row = table.rows[i];
 			var id = row.id ? row.id.replace(/^mess/, '') : 0;
@@ -102,7 +102,7 @@ var statCounter = {
 				if(id != this.ALL_ID) {
 					rank++;
 				}
-				if(intval(ge('post_check_' + id).value)) {
+				if(cur.messChecked[id]) {
 					
 					sdata = this.getStatData(id);
 					udata = this.getUserData(id);
