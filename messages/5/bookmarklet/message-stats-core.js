@@ -56,8 +56,10 @@ var formatDate = function(date, withMsec) {
 	return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
 };
 
-var insertAfter = function ( referenceNode, newNode ){
-	referenceNode.parentNode.insertBefore( newNode, referenceNode.nextSibling );
+var insertAfter = function (node, ref_node) {
+		var next = ref_node.nextSibling;
+		if (next) next.parentNode.insertBefore(node, next);
+		else ref_node.parentNode.appendChild(node);
 };
 
 //because when inserted into address bar, expressions with percentage sign tend to get converted to characters
@@ -69,7 +71,7 @@ var myCheckChange = function(obj, uid) {
 	if (!cur.messChecked) cur.messChecked={};
 	if (cur.messCheckedNum == null) cur.messCheckedNum=0;
 	mail.checkChange(obj,uid);
-	//(cur.messCheckedNum > 0 ? hide : show)('vkstats_text'); // hide copyright bar
+	(cur.messCheckedNum > 0 ? hide : show)('vkstats_text'); // hide copyright bar
 	if( cur.messCheckedNum > SYS.MAX_USERS_AT_ONE_GRAPH) {	
 		if(user.plotGraphs) {
 			hide('plot_graphs_links');
@@ -279,6 +281,7 @@ var user = {
 	plotGraphs: true,
 	sortByKBytes: false
 };var ui = {
+	progress_bar_width:600,//px
 	setTitle: function(string) {
 		document.title = string;
 	},
@@ -297,26 +300,44 @@ var user = {
 		this.setContent('');
 	},
 	
+	addcss: function(css){
+		var styleElement = document.createElement("style");
+		styleElement.type = "text/css";
+		styleElement.appendChild(document.createTextNode(css));
+		document.getElementsByTagName("head")[0].appendChild(styleElement);
+	},
 	appendContentElement: function(element) {
 		ge('content').appendChild(element);
 	},
-	
-	createProgressBar: function() {
+	ProgressBar: function(val,max,width,text){
+			if (val>max) val=max;
+		var pos=(val*100/max).toFixed(2);;
+			var perw=(val/max)*width;
+			text=(text || '%').replace("%",pos+'%');
+			html='<div class="vkprogbar_container" style="width:'+(width+4)+'px;">\
+					<div class="vkprogbar vkpbframe" style="width: '+perw+'px;">\
+						<div class="vkprogbar vkprogbarfr" style="width: '+width+'px;">'+text+'</div>\
+					</div>\
+					<div  class="vkprogbar vkprogbarbgframe" style="width: '+width+'px;">\
+						<div class="vkprogbar vkprogbarbg" style="width: '+width+'px;">'+text+'</div>\
+					</div>\
+				</div>';
+			return html;
+	},
+	createProgressBar: function(text) {
+		ui.addcss('\
+			.vkprogbar_container{margin:0 auto;}\
+			.vkprogbar{height:30px;  text-align:center;line-height:30px;}\
+			.vkprogbarfr{ background-color: #6d8fb3; color:#fff; text-shadow: 0px 1px 0px #45688e;   border-style: solid;  border-width: 1px;  border-color: #7e9cbc #5c82ab #5c82ab;}\
+			.vkpbframe{position:absolute; border:1px solid #36638e; overflow:hidden}\
+			.vkprogbarbgframe{ background-color: #eee; border:1px solid #ccc;}\
+			.vkprogbarbg{text-shadow: 0px 1px 0px #fff; border:1px solid #eee;}\
+			.vkprogressbarbg{background-color: #fff; border:1px solid #ccc}\
+			.vkprogressbarfr{background-color: #5c7893; border:1px solid #36638e; height: 14px;}\
+		');
 		var pr = ce('div',
-			{id: 'progressbar'},
-			{position: 'relative', width: '100%', height: '30px', margin: '3px', backgroundColor: '#DAE2E8'}
+			{id: 'progressbar',innerHTML:ui.ProgressBar(0,1,this.progress_bar_width,text || ' ')},{padding: '10px'}
 		);
-		pr.appendChild(
-			ce('div',
-			{id: 'progressbarbg'}, {width: '0', height: 'inherit', backgroundColor: '#45688E'}
-			)
-		);
-		pr.appendChild(
-			ce('div',
-			{id: 'progresstext'}, {position: 'absolute', left: '10px', top: '7px', width: '400px', height: 'inherit', color: '#000', zIndex: 69}
-			)
-		);
-		
 		this.clearContent();
 		this.appendContentElement(pr);
 	},
@@ -324,12 +345,15 @@ var user = {
 	updateProgressBar: function(processedIncoming, totalIncoming, processedOutgoing, totalOutgoing) {
 		var processed = processedIncoming + processedOutgoing,
 			total = totalIncoming + totalOutgoing,
-			percentage = (100 * processed / total);
-		ge('progressbarbg').style.width = percentage + '%';
-		ge('progresstext').innerHTML = user.lang.messagesProcessed + ': ' +
+			percentage = (100 * processed / total),
+			text = user.lang.messagesProcessed + ': ' +
 			user.lang.incoming + ': ' + processedIncoming + '/' + totalIncoming + '; ' +
 			user.lang.outgoing + ': ' + processedOutgoing + '/' + totalOutgoing;
-
+		ge('progressbar').innerHTML=ui.ProgressBar(processed, total, this.progress_bar_width, text);
+		/*
+		ge('progressbarbg').style.width = percentage + '%';
+		ge('progresstext').innerHTML = text;
+		*/
 		this.setTitle(Math.floor(percentage) + '% ' + user.lang.processingMessages);
 	},
 	
@@ -427,12 +451,12 @@ var user = {
 		}*/
 		
 		mActions.innerHTML += '<span id="mail_summary" style="display:none;"></span>';
-		mActions.innerHTML += '<div class="button_blue fl_l"><button onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</button></div>';
+		mActions.innerHTML += '<div class="button_gray fl_l"><button onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</button></div>';
 		if(user.plotGraphs) {
 			iHTML =  '<span id="plot_graphs_links">';
-			iHTML += '<div class="button_blue fl_l" id="plot_msg_graph_link"><button onclick="ui.plotGraph(false);">' + user.lang.plotMessagesGraph + '</button></div>';
+			iHTML += '<div class="button_gray fl_l" id="plot_msg_graph_link"><button onclick="ui.plotGraph(false);">' + user.lang.plotMessagesGraph + '</button></div>';
 			if(user.kbytes) {
-				iHTML += '<div class="button_blue fl_l" id="plot_kb_graph_link"><button onclick="ui.plotGraph(true);">' + user.lang.plotKbytesGraph + '</button></div>';
+				iHTML += '<div class="button_gray fl_l" id="plot_kb_graph_link"><button onclick="ui.plotGraph(true);">' + user.lang.plotKbytesGraph + '</button></div>';
 			}
 			mActions.innerHTML += iHTML + "</span>"
 		}		
@@ -570,7 +594,7 @@ var user = {
 	
 	addLoggerPane: function(){
 		var t = ce('textarea', {'cols': 80, 'rows': 20, id: 'loggerPane'}, {fontFamily: 'Courier new'});
-		insertAfter(ge('content'), t);
+		insertAfter(t ,ge('content'));
 	},
 	
 	removeLoggerPane: function() {
@@ -965,7 +989,7 @@ var user = {
 	
 	startProcessingMessages: function() {
 		ui.setHeader(user.lang.processingMessages + '...');
-		ui.createProgressBar();
+		ui.createProgressBar(user.lang.processingMessages + '...');
 		ui.updateProgressBar(0, this.incomingMessages, 0, this.outgoingMessages);
 		this.requestStartTime = (new Date()).getTime();
 		

@@ -71,7 +71,7 @@ var myCheckChange = function(obj, uid) {
 	if (!cur.messChecked) cur.messChecked={};
 	if (cur.messCheckedNum == null) cur.messCheckedNum=0;
 	mail.checkChange(obj,uid);
-	//(cur.messCheckedNum > 0 ? hide : show)('vkstats_text'); // hide copyright bar
+	(cur.messCheckedNum > 0 ? hide : show)('vkstats_text'); // hide copyright bar
 	if( cur.messCheckedNum > SYS.MAX_USERS_AT_ONE_GRAPH) {	
 		if(user.plotGraphs) {
 			hide('plot_graphs_links');

@@ -169,12 +169,12 @@ var ui = {
 		}*/
 		
 		mActions.innerHTML += '<span id="mail_summary" style="display:none;"></span>';
-		mActions.innerHTML += '<div class="button_blue fl_l"><button onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</button></div>';
+		mActions.innerHTML += '<div class="button_gray fl_l"><button onclick="statCounter.exportToNote();">' + user.lang.exportToNote + '</button></div>';
 		if(user.plotGraphs) {
 			iHTML =  '<span id="plot_graphs_links">';
-			iHTML += '<div class="button_blue fl_l" id="plot_msg_graph_link"><button onclick="ui.plotGraph(false);">' + user.lang.plotMessagesGraph + '</button></div>';
+			iHTML += '<div class="button_gray fl_l" id="plot_msg_graph_link"><button onclick="ui.plotGraph(false);">' + user.lang.plotMessagesGraph + '</button></div>';
 			if(user.kbytes) {
-				iHTML += '<div class="button_blue fl_l" id="plot_kb_graph_link"><button onclick="ui.plotGraph(true);">' + user.lang.plotKbytesGraph + '</button></div>';
+				iHTML += '<div class="button_gray fl_l" id="plot_kb_graph_link"><button onclick="ui.plotGraph(true);">' + user.lang.plotKbytesGraph + '</button></div>';
 			}
 			mActions.innerHTML += iHTML + "</span>"
 		}		
