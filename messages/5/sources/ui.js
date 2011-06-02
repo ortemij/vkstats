@@ -119,10 +119,7 @@ var ui = {
 	
 		this.clearContent();
 		handlePageView({width:950});
-		/*
-		ge('side_bar').style.display = 'none';
-		ge('page_body').style.width = '96%';
-		*/
+
 		var div = ce('div', {className: 'mailbox'});
 		div.innerHTML += '<div id="mail_top_msg" class="message" style="display:none;"> </div> ';
 		

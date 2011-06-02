@@ -11,7 +11,7 @@ var SYS = {
 	LINK_TO_CLUB: '/club21792535',
 	TOO_MANY_REQUESTS_ERR_CODE: 6,
 	MAX_USERS_AT_ONE_GRAPH: 3,
-	FILES_TO_LOAD: ['mail.css','mail.js','ui_controls.js','ui_controls.css'],
+	FILES_TO_LOAD: ['mail.css','mail.js','ui_controls.js','ui_controls.css','common.js'],
 	LANGUAGES: {
 		0: {
 			name: 'russian',
