@@ -56,8 +56,10 @@ var formatDate = function(date, withMsec) {
 	return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
 };
 
-var insertAfter = function ( referenceNode, newNode ){
-	referenceNode.parentNode.insertBefore( newNode, referenceNode.nextSibling );
+var insertAfter = function (node, ref_node) {
+		var next = ref_node.nextSibling;
+		if (next) next.parentNode.insertBefore(node, next);
+		else ref_node.parentNode.appendChild(node);
 };
 
 //because when inserted into address bar, expressions with percentage sign tend to get converted to characters

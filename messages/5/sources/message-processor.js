@@ -132,7 +132,7 @@ var messageProcessor = {
 	
 	startProcessingMessages: function() {
 		ui.setHeader(user.lang.processingMessages + '...');
-		ui.createProgressBar();
+		ui.createProgressBar(user.lang.processingMessages + '...');
 		ui.updateProgressBar(0, this.incomingMessages, 0, this.outgoingMessages);
 		this.requestStartTime = (new Date()).getTime();
 		
