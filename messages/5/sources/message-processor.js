@@ -6,28 +6,16 @@ var messageProcessor = {
 	processedOutgoingMessages: 0,
 	failed: 0,
 	
-	onUserProfilesLoaded: function(response) {
-		var parsedResponse = eval('(' + response + ')');
+	onUserProfilesLoaded: function(parsedResponse) {
 		if(parsedResponse.response == undefined) {
 			SYS.fatal(response);
 		}
-		
 		parsedResponse = parsedResponse.response;
-		
 		for(var i = 0; i < parsedResponse.length; i ++) {
 			statCounter.userData[parsedResponse[i].uid] = parsedResponse[i];
 		}
-		
-		this.pendingUserDataRequests--;
-		
-		if(user.verbose) {
-			SYS.log('Got user profile data, ' + (this.pendingUserDataRequest) + ' goes remaining');
-		}
-		
-		if(this.pendingUserDataRequests <= 0) {
-			ui.setHeader(user.lang.done + '!');
-			ui.displayStats(statCounter.statByUser, statCounter.userData, user.kbytes && user.sortByKBytes ? 'tot-size' : 'tot');
-		}
+		ui.setHeader(user.lang.done + '!');
+		ui.displayStats(statCounter.statByUser, statCounter.userData, user.kbytes && user.sortByKBytes ? 'tot-size' : 'tot');
 		
 	},
 	
@@ -40,7 +28,8 @@ var messageProcessor = {
 			SYS.log('Got all messages, getting user names');
 		}
 		
-		this.api.getUserNames(getKeys(statCounter.statByUser),function(ao,rt) {messageProcessor.onUserProfilesLoaded(rt);});
+		this.api.getUserNames(getKeys(statCounter.statByUser),messageProcessor.onUserProfilesLoaded);
+		//this.api.getUserNames(getKeys(statCounter.statByUser),function(ao,rt) {messageProcessor.onUserProfilesLoaded(rt);});
 	},
 	
 	onMessagesLoaded: function(parsedResponse, out) {

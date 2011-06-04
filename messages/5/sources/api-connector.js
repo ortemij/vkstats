@@ -1,263 +1,275 @@
-function Ajax(onDone, onFail, eval_res){// From old common.js
- var _t = this;
- this.onDone = onDone;
- this.onFail = onFail;
- var tram = null;
- try { tram = new XMLHttpRequest(); }
- catch(e) { tram = null; }
- if (!tram) {
-  try { if(!tram) tram = new ActiveXObject("Msxml2.XMLHTTP"); }
-  catch(e) { tram = null; }
- }
- if (!tram) {
-  try { if(!tram) tram = new ActiveXObject("Microsoft.XMLHTTP"); }
-  catch(e) { tram = null; }
- }
 
- var readystatechange = function(url, data) {
-    if(tram.readyState == 4 ) {
-     if(tram.status >= 200 && tram.status < 300) {
-       if(eval_res) parseRes();
-       if( _t.onDone ) _t.onDone(extend(_t, {url: url, data: data}), tram.responseText);
-     } else {
-       _t.status = tram.status;
-       _t.readyState = tram.readyState;
-       if( _t.onFail ) _t.onFail(extend(_t, {url: url, data: data}), tram.responseText);
-     }
-   }
- };
-
- var parseRes = function(){
-   if(!tram || !tram.responseText)return;
-   var res = tram.responseText.replace(/^[\s\n]+/g, '');
-
-   if(res.substr(0,10)=="<noscript>")
-   {
-     try{
-       var arr = res.substr(10).split("</noscript>");
-       eval(arr[0]);
-       tram.responseText = arr[1];
-     }catch(e){
-       debugLog('eval ajax script:' + e.message);
-     }
-   }else{}
-  };
-  this.get = function(u, d, f){
-   tram.onreadystatechange = function(){ readystatechange(u, d); };
-   f = f || false;
-   var q = (typeof(d) != 'string') ? ajx2q(d) : d;
-   u = u + (q ? ('?'+q) : '');
-   tram.open('GET', u, !f);
-
-   tram.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-   tram.send('');
-  };
-  this.post = function(u, d, f){
-   tram.onreadystatechange = function(){ readystatechange(u, d); };
-   f = f || false;
-   var q = (typeof(d) != 'string') ? ajx2q(d) : d;
-   try {
-     tram.open('POST', u, !f);
-   } catch(e) {
-     debugLog('ajax post error: '+e.message);
-   }
-   tram.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-   tram.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-   tram.send(q);
-  };
-}
-
-var apiConnector = {
-
-	API_ADDRESS: '/api.php',
-	API_VERSION: '3.0',
-	LOGON_FAIL_STRING: 'login_fail',
-	LOGON_SUCCESS_STRING: 'login_success',
-	NOT_USED_SETTING:32768,
-	
-	logon: function(appId, settings) {
-	
-		this.appId = appId;
-		this.settings = settings;
+var vk_api = {
+	API_ID: SYS.APP_ID,
+	SETTINGS: SYS.LOGIN_SETTING, /* FULL: 15615 + 131072;   Don't use NOT_USED_SETTING */
+	NOT_USED_SETTING: 32768, /* need for get auth dialog when all settings allowed */
+	allow_call:true,
+	auth_frame:null,
+	log: function(s){/*	if(window.user && user.verbose) {		SYS.log(s);	  }*/},
+	Auth: function(callback) {
+		var appId=vk_api.API_ID;
+		var settings=vk_api.SETTINGS;
 		
-		var logonFrame = ce("iframe", {
-			src: '/login.php?app=' + appId + '&layout=popup&type=browser&settings=' + settings
-		}, {position: 'relative', width: '100%', height: '500px'});
-		logonFrame.setAttribute('onload', "apiConnector.onLogonFrameLoaded()");//this.contentWindow.location.href
-		
-		ui.setHeader(user.lang.authorizing + '...');
-		
-		ui.clearContent();
-		ui.appendContentElement(logonFrame);
-		
-		
+		var oncheck=function(r,t) {
+			if (t.indexOf('Login success')!=-1) vk_api.onAuth(callback);
+			else frame_auth();
+		}
+		var frame_auth=function(){
+			if (vk_api.auth_frame) {
+				setTimeout(function(){vk_api.Auth(callback);},2000);
+				return;
+			}
+			vk_api.auth_frame = ce("iframe", {
+				src: '/login.php?app=' + appId + '&layout=popup&type=browser&settings=' + settings
+				}, {position: 'relative', width: '530px', height: '400px', border:'0px'});
+			
+			vk_api.auth_frame.onload=function() { vk_api.onAuth(callback);}
+			
+			var onHideBox=function(){
+				var fr=vk_api.auth_frame;
+				vk_api.auth_frame=null;
+				re(fr);	
+			};
+			vk_api.aBox = new MessageBox({title: 0,width:"560px",onHide:onHideBox});
+			var aBox=vk_api.aBox;
+			aBox.removeButtons();
+			aBox.addButton(getLang('box_close'),aBox.hide);  
+			aBox.content('<div id="vk_api_auth"></div>');
+			aBox.show();
+			ge('vk_api_auth').appendChild(vk_api.auth_frame);
+		}	
+		vk_api.ajax('/login.php?app=' + vk_api.API_ID + '&layout=popup&type=browser&settings=' + vk_api.SETTINGS,{},oncheck);	
 	},
-	
-	onLogonFrameLoaded: function(frameLocation) {
-		var ajax = new Ajax();
-		
+
+	onAuth: function(callback) {
 		var onlogin=function(r,t) {
 			var res='{' + t.split('app_session = {')[1].split('}')[0] + '}';
 			sessionInfo=eval('(' + res + ')');
-			user.uid = sessionInfo.mid;
-			apiConnector.secret = sessionInfo.secret;
-			apiConnector.sid = sessionInfo.sid;
+			vk_api.mid = sessionInfo.mid;
+			vk_api.secret = sessionInfo.secret;
+			vk_api.sid = sessionInfo.sid;
 			
-			ui.setHeader(user.lang.authorized);
-			ui.clearContent();
-			
-			ui.requestSettings();			
+			if (callback) callback(vk_api.mid,vk_api.secret,vk_api.sid);
+	
 		}
 		var oncheck=function(r,t) {
 			if (t.indexOf('Login failure')!=-1){
 				SYS.fatal('failed to log on. ');
 			} else if (t.indexOf('Login success')!=-1){	
-				ajax.onDone = onlogin;
-				ajax.get('/login.php?app=' + apiConnector.appId + '&layout=popup&type=browser&settings='+apiConnector.NOT_USED_SETTING);					
+				if (vk_api.aBox) {
+					vk_api.aBox.hide();
+					vk_api.aBox=null;
+				}
+				vk_api.ajax('/login.php?app=' + vk_api.API_ID + '&layout=popup&type=browser&settings='+vk_api.NOT_USED_SETTING,{},onlogin);					
 			}	
 		}
-		ajax.onDone = oncheck;
-		ajax.get('/login.php?app=' + apiConnector.appId + '&layout=popup&type=browser&settings=' + apiConnector.settings);
+		vk_api.ajax('/login.php?app=' + vk_api.API_ID + '&layout=popup&type=browser&settings=' + vk_api.SETTINGS,{},oncheck)
 	},
-	
+	show_error:function(r){
+		topError(r.error.error_msg+'<br>error_code: '+r.error.error_code,{dt:2});
+	},
+	call: function(method, inputParams, callback, captcha) {
+		if (arguments.length == 2) {    callback=inputParams;     inputParams={};   }
+		if (vk_api.allow_call){
+			vk_api.allow_call=false;
+			vk_api.allow_t=setTimeout("vk_api.allow_call=true;",300);
+		} else {
+			setTimeout(function(){
+				vk_api.call(method, inputParams, callback);
+			},300);
+		}
+		var apiReAuth=function(){
+			vk_api.Auth(function(){
+				vk_api.call(method, inputParams, callback);
+			});
+		}
+		
+		var mid=vk_api.mid;
+		var sid=vk_api.sid;
+		var sec=vk_api.secret;
+
+		if (!vk_api.sid || !vk_api.secret || !vk_api.mid || vk_api.mid!=vk.id){
+			apiReAuth();		
+			return;
+		}
+		var params = {  
+			api_id: vk_api.API_ID,
+			method: method,
+			v: '3.0',       
+			format: 'json' 
+		}
+		if (inputParams) for (var i in inputParams) params[i] = inputParams[i];  
+		var lParams=[];
+		for (i in params) {  lParams.push([i,params[i]]);   }
+
+		function sName(i, ii) {    if (i[0] > ii[0]) return 1;  else if (i[0] < ii[0]) return -1;   else  return 0;  }
+		lParams.sort(sName);
+		var sig = mid;
+		for (i in lParams) sig+=lParams[i][0]+'='+lParams[i][1];
+		sig+=sec;
+
+		function pass() {
+		  params['sig']=md5(sig);
+		  params['sid']=sid;
+		  vk_api.log('api.call('+method+(window.JSON?', '+JSON.stringify(inputParams):'')+')');
+		  vk_api.ajax("/api.php", params,function(obj, text) {
+			if (text=='') text='{}';
+			var response = eval("("+text+")");
+			if (response.error){
+				if (response.error.error_code == 6){
+					setTimeout(function(){
+						vk_api.call(method, inputParams, callback);
+					},500);
+				} else if ( response.error.error_code == 4 || (response.error.error_code == 3 || response.error.error_code == 7) ){
+					apiReAuth();				
+				} else if(response.error.error_code == 14) { // Captcha needed
+					vk_api.captcha(response.error.captcha_sid, response.error.captcha_img, function(sid, value) {
+						inputParams['captcha_sid'] = sid;  inputParams['captcha_key'] = value;
+						vk_api.call(method, inputParams, callback, true);
+					}, false, function() { callback(response); });
+				}else {
+					vk_api.show_error(response); 
+					if (captcha) vk_api_captchaBox.hide();  
+					callback(response,response.response,response.error);  
+				} 
+			} else { 
+				if (captcha) vk_api_captchaBox.hide();  
+				callback(response);  
+			}
+		  });
+		}
+		pass();
+	},
+	captcha: function(sid, img, onClick, onShow, onHide) {
+		vk_api_captchaBox = new MessageBox({title: getLang('captcha_enter_code'), width: 300});
+		var box = vk_api_captchaBox;
+		box.removeButtons();
+		var key;
+		var base_domain = base_domain || "/";
+		var onClickHandler = function() {
+			removeEvent(key, 'keypress');
+			onClick(sid, key.value);
+			hide('captchaKey');
+			show('captchaLoader');
+		}
+		box.addButton(getLang('captcha_cancel'), function(){removeEvent(key, 'keypress');box.hide();},'no');
+		box.addButton(getLang('captcha_send'),onClickHandler);
+		box.setOptions({onHide: onHide, bodyStyle: 'padding: 16px 14px'});
+		box.content('<div style="text-align: center; height: 76px"><a href="#" id="refreshCaptcha"><img id="captchaImg" class="captchaImg" src="'+img+ '"/></a><div></div><input id="captchaKey" class="inputText" name="captcha_key" type="text" style="width: 120px; margin: 3px 0px 0px;" maxlength="7"/><img id="captchaLoader" src="'+base_domain+'images/progress7.gif" style="display:none; margin-top: 13px;" /></div>');
+		box.show();
+		if (isFunction(onShow)) onShow();
+		key = ge('captchaKey');
+		addEvent(key, 'keypress', function(e) { if(e.keyCode==13){ onClickHandler(); }});
+		addEvent(ge('refreshCaptcha'), 'click', onClickHandler);
+		key.focus();
+	},
+	ajax: function(url, data, callback) {
+		var request = null;
+		try { request = new XMLHttpRequest(); }	catch(e) { request = null; }
+		try { if(!request) request = new ActiveXObject("Msxml2.XMLHTTP"); }	catch(e) { request = null; }
+		try { if(!request) request = new ActiveXObject("Microsoft.XMLHTTP"); }	catch(e) { request = null; }
+		if(!request) return false;
+		var encodeData=function(data) {
+			var query = [];
+			if (data instanceof Object) {
+				for (var k in data) query.push(encodeURIComponent(k) + "=" + encodeURIComponent(data[k]));			
+				return query.join('&');
+			} else return encodeURIComponent(data);
+		}	
+		request.onreadystatechange  = function() {if (request.readyState == 4 && callback) callback(request,request.responseText);};
+		request.open('POST', url, true);
+		if (request.setRequestHeader){
+			request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+			request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+		}
+		request.send(encodeData(data));
+		return true;
+	}
+};
+
+apiConnector = {
+	getMessages_: function(out, offset, count, onDone) {
+		if(user.verbose) {
+			SYS.log('getMessages invoked: out=' + out + "; offset=" + offset);
+		}
+		var previewLength = user.kbytes ? 0 : 1;
+		vk_api.call('messages.get',{filters:user.friendsOnly?4:0,offset:offset,out:out,preview_length:previewLength,count:count},onDone);
+	},	
 	getMessages: function(out, offset, count, onDone) {
 		if(user.verbose) {
 			SYS.log('getMessages invoked: out=' + out + "; offset=" + offset);
 		}
-
-		var toMd5 = user.uid;
-		
+		var _count=count;
 		var previewLength = user.kbytes ? 0 : 1;
-		
-		toMd5 += 'api_id' + '=' + this.appId;
-		toMd5 += 'count=' + count;
-		if(user.friendsOnly) {
-			toMd5  += 'filters=4';
+		var filters = user.friendsOnly ? 4 : 0;
+		code_body='';
+		code_r=[];
+		steps=Math.ceil(count/100);
+		for (var i=0; i<steps;i++){
+			var obj={count:count>100?100:count, offset:offset, filters:filters,out:out,preview_length:previewLength};
+			code_body+='var x'+i+'=API.messages.get('+to_json(obj)+');\n';
+			code_r.push('x'+i);
+			count-=100;
+			offset+=100;
 		}
-		toMd5 += 'format=JSON';
-		toMd5 += 'method=messages.get';
-		toMd5 += 'offset=' + offset;
-		toMd5 += 'out=' + out;
-		toMd5 += 'preview_length=' + previewLength;
-		toMd5 += 'v=' + this.API_VERSION,
-		toMd5 += this.secret;
-		
-		var ajax = new Ajax();
-		ajax.onDone = function(ao,rt) {
-			var parsedResponse;
-			try {
-				parsedResponse = eval('(' + rt + ')');
-			} catch (e) {
-				SYS.log("Failed to parse JSON response: [" + e + "] " + rt);
-			}
-
-			if (parsedResponse == undefined) {
-				onDone();
-			} else if (parsedResponse.error != undefined) {
-				if(parsedResponse.error.error_code == SYS.TOO_MANY_REQUESTS_ERR_CODE) {
-					if(user.verbose) {
-						SYS.log('too many requests: ' + rt);
-					}
-					onDone({});
-				} else {
-					SYS.fatal(rt);
+		code_body+='\nreturn ['+code_r.join(',')+'];';
+		vk_api.call('execute',{code:code_body},function(r){
+			var res=null;
+			var m=r.response;
+			for (var i=0;i<m.length;i++){
+				if (!res) res=m[i];
+				else if (m[i] && m[i].length>0){
+					var c=m[i];
+					c.shift();
+					for (var j=0; j<c.length; j++)
+						res.push(c[j]);
 				}
-			} else {
-				onDone(parsedResponse);
+					
 			}
-		};
-		
-		
-		params = {
-			api_id: apiConnector.appId,
-			count: count,
-			format: 'JSON',
-			method: 'messages.get',
-			offset: offset,
-			out:out,
-			preview_length: previewLength,
-			sid: apiConnector.sid,
-			sig: md5(toMd5),
-			v: this.API_VERSION
-		};
-		
-		if(user.friendsOnly) {
-			params.filters = 4;
-		}
-		
-		ajax.post(this.API_ADDRESS, params);
+			if(user.verbose) {
+				var lost=_count-res.length+1;
+				if (lost>0)	SYS.log("Lost Messages count:" + lost);
+			}
+			onDone({response:res});
+		});
 	},
-	
 	doGetUserData: function(ids, onDone) {
 		if(user.verbose) {
 			SYS.log('doGetUserData invoked: ids=' + ids);
 		}
-		var toMd5 = user.uid;
-		
-		toMd5 += 'api_id' + '=' + this.appId;
-		toMd5 += 'fields=photo';
-		toMd5 += 'format=JSON';
-		toMd5 += 'method=getProfiles';
-		
-		var uids = ids.join(',');
-		toMd5 += 'uids=' + uids;
-		
-		toMd5 += 'v=' + this.API_VERSION;
-		toMd5 += this.secret;
-		
-		var ajax = new Ajax();
-		ajax.onDone = onDone;
-		
-		ajax.post(this.API_ADDRESS, {
-			api_id: apiConnector.appId,
-			fields: 'photo',
-			format: 'JSON',
-			method: 'getProfiles',
-			sid: apiConnector.sid,
-			sig: md5(toMd5),
-			uids: uids,
-			v: this.API_VERSION
-		});
-		
+		vk_api.call('getProfiles',{uids:ids.join(','),fields:'photo'},onDone);		
 	},
 	
-	getUserNames: function(ids, onDone) {
+	getUserNames: function(ids, onDone, onProcess) {
 		ids = splitArrayToSubArrays(ids, SYS.MAX_USERS_PER_REQUEST);
-		this.onDone = onDone;
-		messageProcessor.pendingUserDataRequests = ids.length;
-		for(var i = 0; i < ids.length; i ++) {
-			setTimeout('apiConnector.doGetUserData([' + ids[i] + '], apiConnector.onDone)', (i + 1) * SYS.MSEC_BETWEEN_REQUESTS_FOR_USERDATA);
-		}
+		//this.onDone = onDone;
+		//messageProcessor.pendingUserDataRequests = ids.length;
+		//
+		var res=null;
+		var i=0;
+		var scan=function(r){
+			if (r && r.response){
+			   if (!res) res=r;
+			   else for (var x=0; x<r.response.length;x++) res.response.push(r.response[x]);
+			}
+			if (!ids[i]) {
+				onDone(res);
+				return;
+			}
+			setTimeout(function(){
+				if (onProcess) onProcess(i);
+				apiConnector.doGetUserData(ids[i],scan);
+				i++;
+			},400);
+		};
+		scan();
 	},
 	
 	createNote: function(title, text, onDone) {
 		if(user.verbose) {
-			SYS.log('createNote invoked: title=' + title + '; text=' + text);
+			SYS.log('createNote:  title=' +title + "; text=" + text);
 		}
-		var toMd5 = user.uid;
-		
-		toMd5 += 'api_id' + '=' + this.appId;
-		toMd5 += 'format=JSON';
-		toMd5 += 'method=notes.add';
-		
-		toMd5 += 'text=' + text;
-		toMd5 += 'title=' + title;
-		
-		toMd5 += 'v=' + this.API_VERSION;
-		toMd5 += this.secret;
-		
-		var ajax = new Ajax();
-		ajax.onDone = onDone;
-		
-		ajax.post(this.API_ADDRESS, {
-			api_id: apiConnector.appId,
-			format: 'JSON',
-			method: 'notes.add',
-			sid: apiConnector.sid,
-			sig: md5(toMd5),
-			text: text,
-			title: title,
-			v: this.API_VERSION
-		});
+		vk_api.call('notes.add',{text:text,title:title},onDone);
 	}
 };
+

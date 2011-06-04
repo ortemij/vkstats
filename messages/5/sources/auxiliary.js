@@ -67,6 +67,23 @@ var mod = function(first, second) {
 	return first % second;
 };
 
+var to_json = function (obj) { // serialize Objects (if avaliable also can use JSON.stringify )
+		var t = typeof (obj);
+		if (t != "object" || obj === null) {
+			if (t == "string") obj = '"'+obj+'"';
+			return String(obj);
+		} else {
+			var n, v, json = [], arr = (obj && obj.constructor == Array);
+			for (n in obj) {
+				v = obj[n]; t = typeof(v);
+				if (t == "string") v = '"'+v+'"';
+				else if (t == "object" && v !== null) v = JSON.stringify(v);
+				json.push((arr ? "" : '"' + n + '":') + String(v));
+			}
+			return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
+		}
+};
+
 var myCheckChange = function(obj, uid) {
 	if (!cur.messChecked) cur.messChecked={};
 	if (cur.messCheckedNum == null) cur.messCheckedNum=0;

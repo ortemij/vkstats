@@ -1,6 +1,10 @@
 if (window.renderFlash){
 	stManager.add(SYS.FILES_TO_LOAD, function() {
-		apiConnector.logon(SYS.APP_ID, SYS.LOGIN_SETTING);
+		vk_api.Auth(function(mid,secret,sid){
+			//alert(mid+'\n'+secret+'\n'+sid);
+			user.uid=mid;
+			ui.requestSettings();
+		});	
 	});
 } else {
 	alert(user.lang.wrongPage);
