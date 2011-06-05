@@ -533,7 +533,7 @@ var user = {
 			tdS.setAttribute('onmouseout', "mail.checkOut(this, '" + uid + "')");
 			tdS.setAttribute('onclick', "myCheckChange(this, '" + uid + "')");
 			
-			var tdP = ce('td', {innerHTML: uid == statCounter.ALL_ID ? '' : (user.hideAvatars ? '<a href="/id' + uid + '" target="_blank"><img src="' + (udata.photo?udata.photo:'/images/question_c.gif') + '" /></a>':''), className: 'messagePicture'});
+			var tdP = ce('td', {innerHTML: uid == statCounter.ALL_ID ? '' : (!user.hideAvatars ? '<a href="/id' + uid + '" target="_blank"><img src="' + (udata.photo?udata.photo:'/images/question_c.gif') + '" /></a>':''), className: 'messagePicture'});
 			var tdN = ce('td', {innerHTML: (uid == statCounter.ALL_ID ? '' : ('<a href="/id' + uid + '" target="_blank">')) + udata.first_name + ' ' + udata.last_name + (uid == statCounter.ALL_ID ? '' : '</a>'), className: 'messageFrom'});
 			var tdT = ce('td', {innerHTML: sdata.inM + sdata.outM});
 			var tdO = ce('td', {innerHTML: sdata.outM});
