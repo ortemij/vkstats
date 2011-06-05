@@ -170,7 +170,8 @@ addUnsigned(f,j)}return(wordToHex(c)+wordToHex(d)+wordToHex(e)+wordToHex(f)).toL
 				wantToPlotGraphs: 'Я захочу строить графики общения от времени',
 				totalFirstName: 'Общая', 
 				totalLastName: 'статистика',
-				sortByKBytes: 'Сортировать по килобайтам'
+				sortByKBytes: 'Сортировать по килобайтам',
+				hideAvatars: 'Не показывать аватарки пользователей'
 			}
 		},
 		1: {
@@ -296,7 +297,8 @@ var user = {
 	kbytes: true,
 	friendsOnly: false,
 	plotGraphs: true,
-	sortByKBytes: false
+	sortByKBytes: false,
+	
 };var ui = {
 	progress_bar_width:600,//px
 	setTitle: function(string) {
@@ -526,7 +528,7 @@ var user = {
 			tdS.setAttribute('onmouseout', "mail.checkOut(this, '" + uid + "')");
 			tdS.setAttribute('onclick', "myCheckChange(this, '" + uid + "')");
 			
-			var tdP = ce('td', {innerHTML: uid == statCounter.ALL_ID ? '' : ('<a href="/id' + uid + '" target="_blank"><img src="' + udata.photo + '" /></a>'), className: 'messagePicture'});
+			var tdP = ce('td', {innerHTML: uid == statCounter.ALL_ID ? '' : (user.hideAvatars ? '<a href="/id' + uid + '" target="_blank"><img src="' + (udata.photo?udata.photo:'/images/question_c.gif') + '" /></a>':''), className: 'messagePicture'});
 			var tdN = ce('td', {innerHTML: (uid == statCounter.ALL_ID ? '' : ('<a href="/id' + uid + '" target="_blank">')) + udata.first_name + ' ' + udata.last_name + (uid == statCounter.ALL_ID ? '' : '</a>'), className: 'messageFrom'});
 			var tdT = ce('td', {innerHTML: sdata.inM + sdata.outM});
 			var tdO = ce('td', {innerHTML: sdata.outM});
@@ -575,7 +577,7 @@ var user = {
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_sort_kbytes" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_friends_only" /></div>';
 		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_fancy_graphs" /></div>';
-		
+		html += '<div style="width: 300px; height: 30px;"><input type="hidden" id="param_hide_avatars" /></div>';
 		mbox.content(html).show();
 		
 		new Checkbox(ge('param_verbose'), {
@@ -607,6 +609,11 @@ var user = {
 			checked: 1,
 			onChange: function() {user.plotGraphs = !user.plotGraphs;}
 		});
+		new Checkbox(ge('param_hide_avatars'), {
+			label: user.lang.hideAvatars,
+			checked: 1,
+			onChange: function() {user.hideAvatars = !user.hideAvatars;}
+		});		
 	},
 	
 	addLoggerPane: function(){
@@ -1299,7 +1306,7 @@ apiConnector = {
 				if (onProcess) onProcess(i);
 				apiConnector.doGetUserData(ids[i],scan);
 				i++;
-			},400);
+			},SYS.MSEC_BETWEEN_REQUESTS);
 		};
 		scan();
 	},

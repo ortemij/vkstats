@@ -260,7 +260,7 @@ apiConnector = {
 				if (onProcess) onProcess(i);
 				apiConnector.doGetUserData(ids[i],scan);
 				i++;
-			},400);
+			},SYS.MSEC_BETWEEN_REQUESTS);
 		};
 		scan();
 	},

@@ -57,7 +57,8 @@ var SYS = {
 				wantToPlotGraphs: 'Я захочу строить графики общения от времени',
 				totalFirstName: 'Общая', 
 				totalLastName: 'статистика',
-				sortByKBytes: 'Сортировать по килобайтам'
+				sortByKBytes: 'Сортировать по килобайтам',
+				hideAvatars: 'Не показывать аватарки пользователей'
 			}
 		},
 		1: {
@@ -183,5 +184,6 @@ var user = {
 	kbytes: true,
 	friendsOnly: false,
 	plotGraphs: true,
-	sortByKBytes: false
+	sortByKBytes: false,
+	
 };
