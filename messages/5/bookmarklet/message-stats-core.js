@@ -298,7 +298,7 @@ var user = {
 	friendsOnly: false,
 	plotGraphs: true,
 	sortByKBytes: false,
-	
+	hideAvatars:true
 };var ui = {
 	progress_bar_width:600,//px
 	setTitle: function(string) {

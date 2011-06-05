@@ -185,5 +185,5 @@ var user = {
 	friendsOnly: false,
 	plotGraphs: true,
 	sortByKBytes: false,
-	
+	hideAvatars:true
 };
