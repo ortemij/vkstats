@@ -45,13 +45,18 @@ var ui = {
 	createProgressBar: function(text) {
 		ui.addcss('\
 			.vkprogbar_container{margin:0 auto;}\
+			/*\
 			.vkprogbar{height:30px;  text-align:center;line-height:30px;}\
-			.vkprogbarfr{ background-color: #6d8fb3; color:#fff; text-shadow: 0px 1px 0px #45688e;   border-style: solid;  border-width: 1px;  border-color: #7e9cbc #5c82ab #5c82ab;}\
+			.vkprogbarfr{ box-shadow: inset 0 10px 26px rgba(255, 255, 255, 0.5); background-color: #6d8fb3; color:#fff; text-shadow: 0px 1px 0px #45688e;   border-style: solid;  border-width: 1px;  border-color: #7e9cbc #5c82ab #5c82ab;}\
 			.vkpbframe{position:absolute; border:1px solid #36638e; overflow:hidden}\
-			.vkprogbarbgframe{ background-color: #eee; border:1px solid #ccc;}\
+			.vkprogbarbgframe{ box-shadow: inset 0 10px 26px rgba(255, 255, 255, 0.5); background-color: #eee; border:1px solid #ccc;}\
 			.vkprogbarbg{text-shadow: 0px 1px 0px #fff; border:1px solid #eee;}\
-			.vkprogressbarbg{background-color: #fff; border:1px solid #ccc}\
-			.vkprogressbarfr{background-color: #5c7893; border:1px solid #36638e; height: 14px;}\
+			*/\
+			.vkprogbar{height:19px;  text-align:center;line-height:17px; font-size:10px;}\
+			.vkprogbarfr{ background-image:url(\"/images/progress_grad.gif\"); background-color: #6D8FB3; color:#FFF; text-shadow: 0px 1px 0px #45688E;   border-style: solid;  border-width: 1px;  border-color: #7E9CBC #5C82AB #5C82AB;}\
+			.vkpbframe{position:absolute; border:1px solid #36638e; overflow:hidden}\
+			.vkprogbarbgframe{ background-color: #EEE; border:1px solid #ccc;}\
+			.vkprogbarbg{text-shadow: 0px 1px 0px #FFF; border:1px solid #EEE; box-shadow: inset 0 10px 26px rgba(255, 255, 255, 0.5); }\
 		');
 		var pr = ce('div',
 			{id: 'progressbar',innerHTML:ui.ProgressBar(0,1,this.progress_bar_width,text || ' ')},{padding: '10px'}
