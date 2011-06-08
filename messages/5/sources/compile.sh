@@ -6,7 +6,8 @@ if [ -n "$1" ]; then
   svn up ../../..
   if [ -e ../builds/message-stats-core$SUFFIX.js ]; then
     echo "Version $VERSION already exists!"
-    exit 1
+    echo "Press any key to continue or Ctrl+C for break"
+    read
   fi
 else
   VERSION=""
