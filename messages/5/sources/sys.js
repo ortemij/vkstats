@@ -58,7 +58,7 @@ var SYS = {
 				totalFirstName: 'Общая', 
 				totalLastName: 'статистика',
 				sortByKBytes: 'Сортировать по килобайтам',
-				hideAvatars: 'Не показывать аватарки пользователей'
+				hideAvatars: 'Не показывать фотографии пользователей'
 			}
 		},
 		1: {
@@ -105,7 +105,8 @@ var SYS = {
 				wantToPlotGraphs: 'Я захочу будувати гарні графіки',
 				totalFirstName: 'Загальна', 
 				totalLastName: 'статистика',
-				sortByKBytes: 'Cортувати по кілобайтам'
+				sortByKBytes: 'Cортувати по кілобайтам',
+				hideAvatars: 'Не показувати фотографії'
 			}
 		},
 		3: {
@@ -152,7 +153,8 @@ var SYS = {
 				wantToPlotGraphs: 'I\'d like to plot fancy graphs',
 				totalFirstName: 'Overall', 
 				totalLastName: 'stats',
-				sortByKBytes: 'Sort by kilobytes'
+				sortByKBytes: 'Sort by kilobytes',
+				hideAvatars: 'Hide user photos'
 			}
 		}
 	},
