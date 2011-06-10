@@ -77,6 +77,7 @@ var vk_api = {
 			setTimeout(function(){
 				vk_api.call(method, inputParams, callback);
 			},300);
+			return;
 		}
 		var apiReAuth=function(){
 			vk_api.Auth(function(){
