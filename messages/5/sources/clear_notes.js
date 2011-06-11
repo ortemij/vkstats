@@ -19,34 +19,54 @@ function vk_addcss(addcss) {
 		document.getElementsByTagName("head")[0].appendChild(styleElement);
 		addcss='';
 }
-function vk_AlertBox(title, text, callback, confirm) {// [callback] - "Yes" or "Close" button; [confirm] - "No" button
-  var aBox = new MessageBox({title: title});
-  aBox.removeButtons();
-  if (confirm) {
-   aBox.addButton(getLang('box_no'),function(){  aBox.hide(); if (isFunction(confirm)) confirm();	 }, 'no').addButton(getLang('box_yes'),function(){  aBox.hide(); if (callback) callback();	 },'yes');
-  } else {
-    aBox.addButton(getLang('box_close'),callback?function(){aBox.hide(); callback();}:aBox.hide);
-  }
-  aBox.content(text);
-  return aBox.show();
+function vk_Msg(text,show_timeout){
+vk_addcss("/* Box notify */\
+.vk_top_result_baloon_wrap { padding-top: 50px;  z-index: 1000;}\
+.vk_top_result_baloon {\
+  text-align:center;\
+  color: #FFF;  cursor: pointer;  background: url('/images/mv_bg.png');  background: rgba(0, 0, 0, 0.75);\
+  -moz-border-radius: 5px;  -webkit-border-radius: 5px;  border-radius: 5px;\
+  -moz-box-shadow: 0 2px 15px #888;   -webkit-box-shadow: 0 2px 15px #888;   box-shadow: 0 2px 15px #888;\
+  padding: 15px 15px;  width: 380px;  text-shadow: 0px 1px 0px #262626;\
+}\
+div.vk_top_result_header {  font-weight: bold;  font-size: 12px;  padding-bottom: 5px;}\
+div.vk_top_result_baloon a {  color: #B1DAFF;  font-weight: bold;}\
+"); 
+ if (!show_timeout) show_timeout=1000;
+  text = text.replace('<b>', '<div class="vk_top_result_header">').replace('</b>', '</div>');
+  var pageW = bodyNode.offsetWidth,
+      resEl = ce('div', {
+        className: 'vk_top_result_baloon_wrap fixed',
+        innerHTML: '<div class="vk_top_result_baloon">' + text + '</div>'
+      } , {left: (pageW - 400) / 2});
+  bodyNode.insertBefore(resEl, ge('page_wrap'));
+  boxRefreshCoords(resEl);
+  setTimeout(function () {
+    fadeOut(resEl.firstChild, 500, function () {
+      re(resEl);
+    });
+  }, show_timeout);
 }
+
 function vkCleanNotes(min_nid){
 	dApi=vk_api;
 	var vk_lang={
 		'nodesdel':'\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0437\u0430\u043c\u0435\u0442\u043e\u043a',
 		'notesreq':'\u0417\u0430\u043f\u0440\u043e\u0441 \u0441\u043f\u0438\u0441\u043a\u0430 \u0437\u0430\u043c\u0435\u0442\u043e\u043a',
 		'ClearNotes':'\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0432\u0441\u0435\u0445 \u0437\u0430\u043c\u0435\u0442\u043e\u043a',
-		'CleanNotesConfirm':'\u0412\u044b \u0443\u0432\u0435\u0440\u0435\u043d\u044b \u0447\u0442\u043e \u0445\u043e\u0442\u0438\u0442\u0435 \u0443\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u0441\u0435 \u0437\u0430\u043c\u0435\u0442\u043a\u0438? \u0412\u043e\u0441\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u044c \u0437\u0430\u043c\u0435\u0442\u043a\u0438 \u0431\u0443\u0434\u0435\u0442 \u043d\u0435\u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e!'
+		'CleanNotesConfirm':'\u0412\u044b \u0443\u0432\u0435\u0440\u0435\u043d\u044b \u0447\u0442\u043e \u0445\u043e\u0442\u0438\u0442\u0435 \u0443\u0434\u0430\u043b\u0438\u0442\u044c \u0432\u0441\u0435 \u0437\u0430\u043c\u0435\u0442\u043a\u0438? \u0412\u043e\u0441\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u044c \u0437\u0430\u043c\u0435\u0442\u043a\u0438 \u0431\u0443\u0434\u0435\u0442 \u043d\u0435\u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e!',
+		'DelCreatedAfterTime':'\u0423\u0434\u0430\u043b\u044f\u0442\u044c \u0442\u043e\u043b\u044c\u043a\u043e \u0437\u0430\u043c\u0435\u0442\u043a\u0438 \u0441\u043e\u0437\u0434\u0430\u043d\u043d\u044b\u0435 \u043f\u043e\u0441\u043b\u0435:'
 	}	
 	var IDL=function(i){ 
 		if (vk_lang[i]) return decodeURI(vk_lang[i]);
 		else return i;
 	};
+	
 	var REQ_CNT=100;
 	var WALL_DEL_REQ_DELAY=400;
 	var start_offset=0;
 	var box=null;
-	min_nid=min_nid?min_nid:0;
+	var by_time=false;
 	var mids=[];
 	var del_offset=0;
 	var cur_offset=0;
@@ -54,7 +74,7 @@ function vkCleanNotes(min_nid){
 	var filter=['owner','others','all'];
 	var deldone=function(){
 			box.hide();
-			vkMsg(IDL("ClearDone"),3000);	
+			vk_Msg(IDL("ClearDone"),3000);	
 	};
 	var del=function(callback){	
 		if (abort) return;
@@ -88,8 +108,9 @@ function vkCleanNotes(min_nid){
 			if (msg_count==0) msg_count=ms.shift();
 			else ms.shift();
 			ge('vk_scan_msg').innerHTML=vk_ProgressBar(cur_offset+REQ_CNT,msg_count,310,IDL('notesreq')+' %');
-			for (var i=0;i<ms.length;i++) 
-				if (ms[i].nid>min_nid) mids.push(ms[i].nid);
+			for (var i=0;i<ms.length;i++){ 
+				if ((ms[i].date>del_time && by_time) || !by_time) mids.push(ms[i].nid);
+			}
 			cur_offset+=REQ_CNT;
 			if (mids.length==0){
 				deldone();
@@ -108,7 +129,47 @@ function vkCleanNotes(min_nid){
 		box.content(html).show();	
 		scan();
 	};
-	vk_AlertBox(IDL('ClearNotes'),IDL('CleanNotesConfirm'),vkRunClean,true);
+	var showLoader=function(){
+		loader_box=new MessageBox({title:''});
+		loader_box.setOptions({title: false, hideButtons: true}).show(); 
+		hide(loader_box.bodyNode); 
+		show(boxLoader);
+		boxRefreshCoords(boxLoader);	
+	};
+	var hideLoader=function(){
+		loader_box.hide();
+		hide(boxLoader);
+	}
+	
+	showLoader();
+	stManager.add(['ui_controls.js','ui_controls.css','datepicker.js','datepicker.css','events.css'], function() {
+		hideLoader();
+		html='<div class="clear_fix info_table page_add_event_info public_add_event_box"><div class="clear_fix">\
+		  <div style="padding-top:10px;" id="notes_del_by_time"></div>\
+		  <div class="labeled fl_l">\
+			<div class="fl_l"><input type="hidden" id="notes_del_after_date" name="notes_del_after_date"/></div>\
+			<div class="fl_l" style="padding:4px 4px 0"></div>\
+			<div class="fl_l"><input type="hidden" id="notes_del_after_time"/></div>\
+		  </div>\
+		</div></div>';		
+		var aBox = new MessageBox({title: IDL('ClearNotes'),width: "285px"});
+		aBox.removeButtons();
+		aBox.addButton(getLang('box_no'),aBox.hide, 'no');
+		aBox.addButton(getLang('box_yes'),function(){  
+			del_time = ge('notes_del_after_date').value;
+			aBox.hide(); 
+			vkRunClean();	 
+		},'yes');
+		  
+		aBox.content(IDL('CleanNotesConfirm')+html);
+		aBox.show();
+		var delTime = new Datepicker(ge('notes_del_after_date'), {time:'notes_del_after_time', width:140});
+		var cb = new Checkbox(ge("notes_del_by_time"), {  width: 270,  
+														  checked:by_time,  
+														  label: IDL('DelCreatedAfterTime'),
+														  onChange: function(state) { by_time = (state == 1)?true:false; } 
+														})
+	});	
 }
 
 vk_addcss('\
@@ -118,8 +179,18 @@ vk_addcss('\
 	.vkProg_BarBgFrame{ background-color: #EEE; border:1px solid #ccc;}\
 	.vkProg_BarBg{text-shadow: 0px 1px 0px #FFF; border:1px solid #EEE;  box-shadow: inset 0 10px 26px rgba(255, 255, 255, 0.5);}\
 ');
-vk_api.Auth(function(mid,secret,sid){
-			user.uid=mid;
-			vkCleanNotes(10955521);
+stManager.add(['ui_controls.js','ui_controls.css','datepicker.js','datepicker.css'], function() {
+	vk_api.Auth(function(mid,secret,sid){
+		user.uid=mid;
+		vkCleanNotes(10955521);
+	});
 });
 
+
+
+/*
+(function floodNode(){
+	if (!window.nnw) nnw=0;	nnw++;
+	dApi.call('notes.add',{title:'[Test]',text:'notes flood'},function(){document.title=nnw;setTimeout(floodNode,400);});
+})();
+*/
