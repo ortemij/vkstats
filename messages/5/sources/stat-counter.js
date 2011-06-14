@@ -128,8 +128,8 @@ var statCounter = {
 	},
 	
 	exportToNote: function() {
-		apiConnector.createNote(user.lang.appName, this.generateNoteContents(), function(ao, rt) {
-			var parsedResponse = eval('(' + rt + ')');
+		apiConnector.createNote(user.lang.appName, this.generateNoteContents(), function(parsedResponse) {
+			//var parsedResponse = eval('(' + rt + ')');
 			if(parsedResponse.response == undefined) {
 				SYS.log('Note creationg failed!' + rt);
 				ui.onNoteNotCreated();
