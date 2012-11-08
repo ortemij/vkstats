@@ -16,6 +16,8 @@ var ui = {
 	
 	clearContent: function() {
 		this.setContent('');
+      removeClass(geByTag1('body'),'im_fixed_nav');
+      removeClass(geByTag1('body'),'audio_fixed_nav'); 
 	},
 	
 	addcss: function(css){
