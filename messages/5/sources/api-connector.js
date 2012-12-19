@@ -23,7 +23,9 @@ var vk_api = {
 				src: '/login.php?app=' + appId + '&layout=popup&type=browser&settings=' + settings
 				}, {position: 'relative', width: '530px', height: '400px', border:'0px'});
 			
-			vk_api.auth_frame.onload=function() { vk_api.onAuth(callback);}
+         var on_auth=function() { vk_api.onAuth(callback);};
+         
+			vk_api.auth_frame.onload=on_auth;
 			
 			var onHideBox=function(){
 				var fr=vk_api.auth_frame;
@@ -33,7 +35,9 @@ var vk_api = {
 			vk_api.aBox = new MessageBox({title: 0,width:"560px",onHide:onHideBox});
 			var aBox=vk_api.aBox;
 			aBox.removeButtons();
-			aBox.addButton(getLang('box_close'),aBox.hide);  
+			aBox.addButton(getLang('box_close'),aBox.hide); 
+         //aBox.addButton('Login success',on_auth); 
+         
 			aBox.content('<div id="vk_api_auth"></div>');
 			aBox.show();
 			ge('vk_api_auth').appendChild(vk_api.auth_frame);
@@ -55,7 +59,7 @@ var vk_api = {
 		var oncheck=function(r,t) {
 			if (t.indexOf('Login failure')!=-1){
 				SYS.fatal('failed to log on. ');
-			} else if (t.indexOf('Login success')!=-1){	
+			} else if (t.indexOf('Login success')!=-1 || t==''){	
 				if (vk_api.aBox) {
 					vk_api.aBox.hide();
 					vk_api.aBox=null;
