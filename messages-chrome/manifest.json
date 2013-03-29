@@ -1,0 +1,27 @@
+{
+    "name":              "Vkontakte Stats",
+    "version":           "4.3.4",
+    "description":       "Messages statistics script for VK.com",
+    "manifest_version":  2,
+
+    "permissions": [
+        "tabs"
+    ],
+
+    "content_scripts": [
+        {
+            "matches": [ "*://vk.com/im" ],
+            "js": [ "inline.js" ],
+            "run_at": "document_end"
+        }
+    ],
+
+    "icons": {
+        "128": "emblem128.png"
+    },
+
+    "background": {
+        "persistent": false,
+        "scripts": [ "background.js" ]
+    }
+}
