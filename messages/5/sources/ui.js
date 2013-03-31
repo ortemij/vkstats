@@ -160,7 +160,7 @@ var ui = {
 		}
 		
 		var cPane = ce('div', {id:"mail_bar", className: 'clear_fix bar bar clearFix actionBar', innerHTML:
-			'<div id="vkstats_text"><span>' + user.lang.thankYou + '</span>' + (messageProcessor.failed > 0 ? ' ' + user.lang.warning + ': ' + messageProcessor.failed : '') + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010 &ndash; 2011</div></div>'
+			'<div id="vkstats_text"><span>' + user.lang.thankYou + '</span>' + (messageProcessor.failed > 0 ? ' ' + user.lang.warning + ': ' + messageProcessor.failed : '') + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010 &ndash; 2013</div></div>'
 		});
 		var mActions = ce('div', {id: "mail_bar_act", innerHTML: '<span class="fl_l" style="padding-top:4px;">' + user.lang.withSelected + ': </span>',"class":"fl_l"}, {display: 'none', paddingTop:"5px"});
 		/*
