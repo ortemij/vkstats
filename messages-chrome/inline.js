@@ -12,6 +12,12 @@
 			document.getElementsByTagName('head')[0].appendChild(a)
 		};
 		href.innerHTML = "Статистика сообщений";
+		if (langConfig) {
+			switch (langConfig.id) {
+				case 1: href.innerHTML = "Статистика повідомлень"; break;
+				case 3: href.innerHTML = "Messages statistics"; break;
+			}
+		}
 		span.appendChild(href);
 
 		document.getElementById('im_dialogs_summary').children[0].appendChild(divider);
