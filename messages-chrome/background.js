@@ -12,7 +12,7 @@
 						chrome.tabs.remove(tab.id);
 					}
 				});
-			});
+			}, 100);
 		}
 	);
 
