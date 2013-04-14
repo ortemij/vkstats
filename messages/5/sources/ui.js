@@ -59,6 +59,7 @@ var ui = {
 			.vkpbframe{position:absolute; border:1px solid #36638e; overflow:hidden}\
 			.vkprogbarbgframe{ background-color: #EEE; border:1px solid #ccc;}\
 			.vkprogbarbg{text-shadow: 0px 1px 0px #FFF; border:1px solid #EEE; box-shadow: inset 0 10px 26px rgba(255, 255, 255, 0.5); }\
+			#mail_row_t th { padding: 4px 8px 4px 0; }\
 		');
 		var pr = ce('div',
 			{id: 'progressbar',innerHTML:ui.ProgressBar(0,1,this.progress_bar_width,text || ' ')},{padding: '10px'}
@@ -160,7 +161,13 @@ var ui = {
 		}
 		
 		var cPane = ce('div', {id:"mail_bar", className: 'clear_fix bar bar clearFix actionBar', innerHTML:
-			'<div id="vkstats_text"><span>' + user.lang.thankYou + '</span>' + (messageProcessor.failed > 0 ? ' ' + user.lang.warning + ': ' + messageProcessor.failed : '') + '<div style="float:right"> &copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010 &ndash; 2013</div></div>'
+			'<div id="vkstats_text"><span>' + user.lang.thankYou + '</span>' + 
+			(messageProcessor.failed > 0 ? ' ' + user.lang.warning + ': ' + messageProcessor.failed : '') + 
+			'<div style="float:right">' +
+			'<div>&copy; <a href="' + SYS.LINK_TO_CLUB + '" target="_blank">vkontakte-stats</a>, 2010 &ndash; 2013</div>'+
+			'<iframe frameborder="0" allowtransparency="true" scrolling="no" src="https://money.yandex.ru/embed/small.xml?uid=41001265334534&amp;button-text=06&amp;button-size=s&amp;button-color=white&amp;targets=%D0%9D%D0%B0+%D0%BF%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%BA%D1%83+%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B0+Vkontakte+Stats&amp;default-sum=100" width="142" height="31"></iframe>' +
+			'</div>' +
+			'</div>'
 		});
 		var mActions = ce('div', {id: "mail_bar_act", innerHTML: '<span class="fl_l" style="padding-top:4px;">' + user.lang.withSelected + ': </span>',"class":"fl_l"}, {display: 'none', paddingTop:"5px"});
 		/*
@@ -191,7 +198,7 @@ var ui = {
 		div.appendChild(cPane);
 		
 		var tdiv = ce('div',{id:'mail_rows'});
-		var table = ce('table', {cellspacing: "0", cellpadding: "0", id: 'mail_rows_t'}, {width: '100%'});
+		var table = ce('table', {id: 'mail_rows_t'}, {width: '100%', "border-spacing": 0});
 		tdiv.appendChild(table);
 		div.appendChild(tdiv);
 		//<td class="mail_check" onmouseover="mail.checkOver(this, '1767')" onmouseout="mail.checkOut(this, '1767')" onclick="mail.checkChange(this, '1767')" onmousedown="event.cancelBubble = true;">  <div class=""></div></td>
