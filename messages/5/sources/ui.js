@@ -59,7 +59,7 @@ var ui = {
 			.vkpbframe{position:absolute; border:1px solid #36638e; overflow:hidden}\
 			.vkprogbarbgframe{ background-color: #EEE; border:1px solid #ccc;}\
 			.vkprogbarbg{text-shadow: 0px 1px 0px #FFF; border:1px solid #EEE; box-shadow: inset 0 10px 26px rgba(255, 255, 255, 0.5); }\
-			#mail_row_t th { padding: 4px 8px 4px 0; }\
+			#mail_rows_t th { padding: 4px 8px 4px 0; }\
 		');
 		var pr = ce('div',
 			{id: 'progressbar',innerHTML:ui.ProgressBar(0,1,this.progress_bar_width,text || ' ')},{padding: '10px'}
