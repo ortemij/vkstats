@@ -11,10 +11,10 @@
 
 '''Внимание!'''
 
-* Скрипт не работает на '''https''' версии vk.com! Нужно зайти на [http://vk.com]! Если перенаправляет обратно, то в Мои Настройки снимаем галочку Безопасность Вашей страницы -> Всегда использовать безопасное соединение.
-* Переходим [http://oauth.vk.com/authorize?client_id=2045168&scope=6144&redirect_uri=http://oauth.vk.com/blank.html&display=popup&response_type=token|по вот этой ссылке] и разрешаем доступ приложению (если видите "Login Success" или просьбу не копировать данные - значит всё нормально и можно закрыть это окно). 
+* Скрипт не работает на '''https''' версии vk.com! Нужно зайти на [[http://vk.com]]! Если перенаправляет обратно, то в Мои Настройки снимаем галочку Безопасность Вашей страницы -> Всегда использовать безопасное соединение.
+* Переходим [[http://oauth.vk.com/authorize?client_id=2045168&scope=6144&redirect_uri=http://oauth.vk.com/blank.html&display=popup&response_type=token|по вот этой ссылке]] и разрешаем доступ приложению (если видите "Login Success" или просьбу не копировать данные - значит всё нормально и можно закрыть это окно). 
 
-Для браузеров на основе Chromium (Google Chrome, Яндекс Браузер, ...) доступно расширение. '''[https://chrome.google.com/webstore/detail/vkontakte-stats/ddhabjcagfbajoienelficconoekfmae|Установить расширение]'''
+Для браузеров на основе Chromium (Google Chrome, Яндекс Браузер, ...) доступно расширение. '''[[https://chrome.google.com/webstore/detail/vkontakte-stats/ddhabjcagfbajoienelficconoekfmae|Установить расширение]]'''
 
 Для других браузеров и без установки расширения:
 
